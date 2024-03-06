@@ -1,12 +1,13 @@
 object frmMain: TfrmMain
   Left = 1929
-  Height = 600
+  Height = 576
   Top = 154
   Width = 800
   Caption = 'Graph builder'
-  ClientHeight = 600
+  ClientHeight = 576
   ClientWidth = 800
   DefaultMonitor = dmPrimary
+  Menu = MainMenu1
   OnCreate = FormCreate
   Position = poScreenCenter
   LCLVersion = '3.0.0.3'
@@ -461,7 +462,7 @@ object frmMain: TfrmMain
   object Memo1: TMemo
     Left = 0
     Height = 90
-    Top = 510
+    Top = 486
     Width = 800
     Align = alBottom
     ScrollBars = ssVertical
@@ -469,10 +470,60 @@ object frmMain: TfrmMain
   end
   object Image1: TImage
     Left = 0
-    Height = 457
+    Height = 433
     Top = 53
     Width = 800
     Align = alClient
     OnMouseDown = Image1MouseDown
+    OnMouseMove = Image1MouseMove
+    OnMouseUp = Image1MouseUp
+  end
+  object MainMenu1: TMainMenu
+    Left = 664
+    Top = 240
+    object MenuItem1: TMenuItem
+      Caption = 'File'
+      object MenuItem2: TMenuItem
+        Caption = 'Save'
+        OnClick = MenuItem2Click
+      end
+      object MenuItem3: TMenuItem
+        Caption = 'Open'
+        OnClick = MenuItem3Click
+      end
+      object MenuItem6: TMenuItem
+        Caption = 'Export image'
+        OnClick = MenuItem6Click
+      end
+      object Separator1: TMenuItem
+        Caption = '-'
+      end
+      object MenuItem4: TMenuItem
+        Caption = 'Exit'
+        OnClick = MenuItem4Click
+      end
+    end
+    object MenuItem5: TMenuItem
+      Caption = 'Help'
+      OnClick = MenuItem5Click
+    end
+  end
+  object SaveDialog1: TSaveDialog
+    DefaultExt = '.g'
+    Filter = 'Дані графа|*.g|Усі файли|*.*'
+    Left = 664
+    Top = 168
+  end
+  object OpenDialog1: TOpenDialog
+    DefaultExt = '.g'
+    Filter = 'Дані графа|*.g|Усі файли|*.*'
+    Left = 664
+    Top = 92
+  end
+  object SavePictureDialog1: TSavePictureDialog
+    DefaultExt = '.png'
+    FileName = 'graph.png'
+    Left = 664
+    Top = 312
   end
 end
