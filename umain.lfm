@@ -1,10 +1,10 @@
 object frmMain: TfrmMain
   Left = 1929
-  Height = 576
+  Height = 552
   Top = 154
   Width = 800
   Caption = 'Graph builder'
-  ClientHeight = 576
+  ClientHeight = 552
   ClientWidth = 800
   DefaultMonitor = dmPrimary
   Menu = MainMenu1
@@ -462,7 +462,7 @@ object frmMain: TfrmMain
   object Memo1: TMemo
     Left = 0
     Height = 90
-    Top = 486
+    Top = 462
     Width = 800
     Align = alBottom
     ScrollBars = ssVertical
@@ -470,7 +470,7 @@ object frmMain: TfrmMain
   end
   object Image1: TImage
     Left = 0
-    Height = 433
+    Height = 409
     Top = 53
     Width = 800
     Align = alClient

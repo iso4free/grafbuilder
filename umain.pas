@@ -72,6 +72,8 @@ type
     procedure RemoveEdge(num: integer);
     //видалити вершину і усі пов'язані з нею ребра рекурсивно
     procedure RemoveNode(nodenum: integer);
+    //перевірити чи вершина має грані
+    function NodeHasEdges(nodenum : Integer) : Boolean;
   end;
 
 var
@@ -148,7 +150,12 @@ begin
       p := FindNodeByXY(x, y);
       if p <> -1 then
       begin
-        RemoveNode(p);
+        if NodeHasEdges(p) then begin
+         Memo1.Lines.Add(
+                  'Не можна видалити вершину з прикріпленими ребрами!');
+                Memo1.CaretPos := Point(0, Memo1.Lines.Count - 1);
+                Exit;
+        end else RemoveNode(p);
       end;
     end;
   end;
@@ -270,6 +277,7 @@ begin
      mas_x[i]:=StrToInt(s);
      ReadLN(f,s);
      mas_y[i]:=StrToInt(s);
+     mas_n[i]:=i;
    end;
    ReadLN(f,s);
    EdgesCount:=StrToInt(s);
@@ -455,6 +463,20 @@ begin
     if EdgesCount>0 then for j:=1 to EdgesCount do begin
       if edges[j,1]>=NodesCount then edges[j,1]:=edges[j,1]-1;
       if edges[j,2]>=NodesCount then edges[j,2]:=edges[j,2]-1;
+    end;
+  end;
+end;
+
+function TfrmMain.NodeHasEdges(nodenum: Integer): Boolean;
+var
+  i: Integer;
+begin
+  result:=False;
+  if (nodenum=-1) or (EdgesCount=0) then Exit;
+  for i:=1 to EdgesCount do begin
+    if (edges[i,1]=nodenum) or (edges[i,2]=nodenum) then begin
+     Result:=True;
+     Break;
     end;
   end;
 end;
