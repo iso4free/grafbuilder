@@ -13,10 +13,6 @@ const
   CMAS_MAXSIZE = 10;
   //радіус вершини, в межах координат якого не можна додати нової вершини
   CNODE_RADIUS = 20;
-  //Масив кольорів для розмальовування вершин графа
-  CL_SELECTEDNODE: TColor = clYellow;
-  CL_WORK: TColor = clNavy;
-  CL_DONE: TColor = clGreen;
   H = 0.01;
 
 type
@@ -49,7 +45,7 @@ type
     Separator1: TMenuItem;
     Panel1: TPanel;
     sbAddNode: TSpeedButton;
-    SpeedButton2: TSpeedButton;
+    sbAddEdge: TSpeedButton;
     procedure BbNewGraph(Sender: TObject);
     procedure BitBtn2Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -72,6 +68,8 @@ type
     procedure ClearImage;
     //намалювати вершину графа в координатах x,y з індексом N
     procedure draw_graph_node(X, Y, N: integer);
+    //намалювати ребра
+    procedure draw_graph_edge;
     //намалювати граф повністю
     procedure DrawGraph;
     //знайти по координатах вершину і повернути її номер, інакше повернути -1
@@ -88,14 +86,15 @@ type
     procedure depth_search(k: integer; n: integer);
     //візуальна побудова дерева пошуку в глибину
     procedure depth_search_tree_bild(A: TMATRIX; X, Y, V: TVECT; N: integer);
-    //відобразити напрямок обходу
+    //відобразити напрямок обходу вершин стрілками
     procedure set_edges_direction(Mas: TMATRIX; EdgeColor: TColor);
+    //допоміжні функції для розрахунків
     function f1(x, y: real; x1, y1, x2, y2: real): real;
     function f2(x, y: real; a, b, r: real): real;
     function df1x(x, y: real; x1, y1, x2, y2: real): real;
-    function df2x(x, y: real;  a, b, r: real): real;
+    function df2x(x, y: real; a, b, r: real): real;
     function df1y(x, y: real; x1, y1, x2, y2: real): real;
-    function df2y(x, y: real;  a, b, r: real): real;
+    function df2y(x, y: real; a, b, r: real): real;
     function kramer(A: TMAS1; b: TVECT1): TVECT1;
     function det(A: TMAS1): real;
     function multiply(A: TMAS1; b: TVECT1): TVECT1;
@@ -120,12 +119,12 @@ var
   //ознака режиму видалення
   deletemode: boolean;
   //тут будемо запам`ятовувати № вибраної вершини
-  SelectedNode: integer;
+  //  SelectedNode: integer;
   //змінні для пошуку в глибину
-  depth : Boolean;
-  a1 : TMATRIX;
-  V : TVECT;
-  glob_counter : integer;
+  depth: boolean;
+  a1: TMATRIX;
+  V: TVECT;
+  glob_counter: integer;
 
 
 implementation
@@ -150,22 +149,24 @@ end;
 
 procedure TfrmMain.BitBtn2Click(Sender: TObject);
 var
-   ii: integer;
+  ii: integer;
 begin
-  if NodesCount=0 then begin
-    Memo1.Lines.Add('Граф немає вершин, пошук в глибину неможливий!');
+  if NodesCount = 0 then
+  begin
+    Memo1.Lines.Add(
+      'Граф немає вершин, пошук в глибину неможливий!');
     Memo1.CaretPos := Point(0, Memo1.Lines.Count - 1);
     Exit;
   end;
   //todo: пошук в глибину, обхід від вибраної вершини
-       depth := true;
-       for ii := 1 to NodesCount do
-         V[ii] := 0;
-       A1 := edges;
-       glob_counter := 1;
-       V[glob_counter] := 1;
-       depth_search(SelectedNode, NodesCount);
-       depth_search_tree_bild(A1, MAS_X, MAS_Y, V, NodesCount);
+  depth := True;
+  for ii := 1 to NodesCount do
+    V[ii] := 0;
+  A1 := edges;
+  glob_counter := 1;
+  V[glob_counter] := 1;
+  depth_search(1, NodesCount);
+  depth_search_tree_bild(A1, MAS_X, MAS_Y, V, NodesCount);
 end;
 
 procedure TfrmMain.Image1MouseDown(Sender: TObject; Button: TMouseButton;
@@ -189,18 +190,16 @@ begin
         MAS_X[NodesCount] := X;
         MAS_Y[NodesCount] := Y;
         MAS_N[NodesCount] := NodesCount;
-        SelectedNode:=NodesCount;
+
         Memo1.Lines.Add(
-          'Додано вершину '+IntToStr(SelectedNode));
+          'Додано вершину ' + IntToStr(NodesCount));
         Memo1.CaretPos := Point(0, Memo1.Lines.Count - 1);
         draw_graph_node(x, y, NodesCount);
       end
       else
       begin
         //такі координати вже зайняті - вершину не додаємо а робимо її вибраною
-        SelectedNode:=p;
-        Memo1.Lines.Add(
-          'Обрано вершину '+IntToStr(SelectedNode));
+        Memo1.Lines.Add('Така вершина вже є!');
         Memo1.CaretPos := Point(0, Memo1.Lines.Count - 1);
       end;
     end
@@ -223,7 +222,7 @@ begin
     end;
   end;
   //режим додавання ребер
-  if (SpeedButton2.Down = True) then
+  if (sbAddEdge.Down = True) then
   begin
     //якщо менше двох вершин, не можна додати ребро
     if NodesCount < 2 then
@@ -269,7 +268,7 @@ begin
   //не режим додавння ребер - нічого не робимо
   if sbAddNode.Down then Exit;
   endnode := FindNodeByXY(x, y);
-  if endnode = -1 then
+  if (endnode = -1) or (endnode = startnode) then
   begin
     Memo1.Lines.Add('Не обрано кінцеву вершину!');
     Memo1.CaretPos := Point(0, Memo1.Lines.Count - 1);
@@ -283,8 +282,8 @@ begin
       if (newedge = -1) then
       begin
         EdgesCount := EdgesCount + 1;
-        edges[EdgesCount, 1] := startnode;
-        edges[EdgesCount, 2] := endnode;
+        edges[startnode, endnode] := 1;
+        edges[endnode, startnode] := 1;
       end;
     end;
     True: begin
@@ -300,7 +299,7 @@ end;
 procedure TfrmMain.MenuItem2Click(Sender: TObject);
 var
   f: TextFile;
-  i: integer;
+  i, j: integer;
 begin
   //Зберегти файл з графом
   if NodesCount = 0 then Exit;
@@ -315,12 +314,13 @@ begin
     begin
       WriteLN(f, mas_x[i]);
       WriteLN(f, mas_y[i]);
+      WriteLN(f, mas_n[i]);
     end;
     WriteLn(f, EdgesCount);
     if EdgesCount <> 0 then for i := 1 to EdgesCount do
+        for j:= 1 to EdgesCount do
       begin
-        WriteLn(f, edges[i, 1]);
-        WriteLn(f, edges[i, 2]);
+        WriteLn(f, edges[i, j]);
       end;
     CloseFile(f);
   end;
@@ -329,7 +329,7 @@ end;
 procedure TfrmMain.MenuItem3Click(Sender: TObject);
 var
   f: TextFile;
-  i: integer;
+  i, j: integer;
   s: string;
 begin
   //Прочитати файл з графом, очистивши попередню інформацію
@@ -348,17 +348,16 @@ begin
       mas_x[i] := StrToInt(s);
       ReadLN(f, s);
       mas_y[i] := StrToInt(s);
-      mas_n[i] := i;
+      ReadLn(f,s);
+      mas_n[i] := StrToInt(s);
     end;
-    SelectedNode := mas_n[1];
     ReadLN(f, s);
     EdgesCount := StrToInt(s);
     if EdgesCount <> 0 then for i := 1 to EdgesCount do
+        for j:= 1 to EdgesCount do
       begin
         ReadLN(f, s);
-        edges[i, 1] := StrToInt(s);
-        ReadLN(f, s);
-        edges[i, 2] := StrToInt(s);
+        edges[i, j] := StrToInt(s);
       end;
     CloseFile(f);
   end;
@@ -398,13 +397,13 @@ begin
     mas_y[i] := 0;
     mas_n[i] := 0;
     V[i] := 0;
-    for j:= 1 to CMAS_MAXSIZE do begin
-     edges[i, j] := 0;
-     A1[i,j] :=0;
+    for j := 1 to CMAS_MAXSIZE do
+    begin
+      edges[i, j] := 0;
+      A1[i, j] := 0;
     end;
   end;
-  SelectedNode := -1;
-  depth := false;
+  depth := False;
 end;
 
 procedure TfrmMain.ClearImage;
@@ -419,12 +418,27 @@ begin
   begin
     Canvas.Pen.Width := 1;
     Canvas.Pen.Color := clBlack;
-    //якщо це вибрана вершина, колір буде відрізнятись
-    if N = SelectedNode then  Canvas.Brush.Color := CL_SELECTEDNODE
+    if (depth and (N=1)) then Canvas.Brush.Color:=clYellow
       else Canvas.Brush.Color := clActiveCaption;
     Canvas.Ellipse(X - 12, Y - 12, X + 12, Y + 12);
     Canvas.TextOut(X - (Length(IntToStr(N)) * 3), Y - 5, IntToStr(N));
   end;
+end;
+
+procedure TfrmMain.draw_graph_edge;
+var
+  i, j: integer;
+begin
+  Image1.Canvas.Pen.Width := 1;
+  Image1.Canvas.Pen.Color := clBlack;
+  Image1.Canvas.Brush.Color := clWhite;
+  for i := 1 to NodesCount do
+    for j := 1 to NodesCount do
+      if (edges[i, j] <> 0) then
+      begin
+        Image1.Canvas.MoveTo(mas_x[i], mas_y[i]);
+        Image1.Canvas.LineTo(mas_x[j], mas_y[j]);
+      end;
 end;
 
 procedure TfrmMain.DrawGraph;
@@ -434,14 +448,7 @@ begin
   if NodesCount = 0 then Exit;
   for i := 1 to NodesCount do draw_graph_node(mas_x[i], mas_y[i], mas_n[i]);
   if EdgesCount = 0 then Exit;
-  for i := 1 to EdgesCount do
-  begin
-    //малюємо лінію від обраної вершини до порточних координат
-    Image1.Canvas.Pen.Style := psSolid;
-    Image1.Canvas.Pen.Color := clGreen;
-    Image1.Canvas.Line(mas_x[edges[i, 1]], mas_y[edges[i, 1]], mas_x[edges[i, 2]],
-      mas_y[edges[i, 2]]);
-  end;
+  for i := 1 to EdgesCount do draw_graph_edge();
   Invalidate;
 end;
 
@@ -567,208 +574,220 @@ end;
 
 procedure TfrmMain.depth_search(k: integer; n: integer);
 var
-   ii, j, kk: integer;
+  ii, j, kk: integer;
 begin
-     for j := 1 to n do
-       begin
-         WriteLN('depth_search k=', k, ' j=',j);
-         if (A1[k, j] = 1) then
-           begin
-             kk := 0;
-             for ii := 1 to n do
-               if (V[ii] = j) then
-                 begin
-                   kk := kk + 1;
-                   if (A1[j, k] <> 2) and (A1[j, k] <> 3) then
-                     A1[k, j] := 2;
-                 end;
-             if (kk = 0) then
-               begin
-                 A1[k, j] := 3;
-                 Inc(glob_counter);
-                 V[glob_counter] := j;
-                 depth_search(j, n);
-               end;
-           end;
-       end;
+  for j := 1 to n do
+  begin
+    WriteLN('depth_search k=', k, ' j=', j);
+    if (A1[k, j] = 1) then
+    begin
+      kk := 0;
+      for ii := 1 to n do
+        if (V[ii] = j) then
+        begin
+          kk := kk + 1;
+          if (A1[j, k] <> 2) and (A1[j, k] <> 3) then
+            A1[k, j] := 2;
+        end;
+      if (kk = 0) then
+      begin
+        A1[k, j] := 3;
+        Inc(glob_counter);
+        V[glob_counter] := j;
+        depth_search(j, n);
+      end;
+    end;
+  end;
 end;
 
-procedure TfrmMain.depth_search_tree_bild(A: TMATRIX; X, Y, V: TVECT; N: integer
-  );
+procedure TfrmMain.depth_search_tree_bild(A: TMATRIX; X, Y, V: TVECT; N: integer);
 var
-   i, j: integer;
+  i, j: integer;
 begin
-     Canvas.Brush.Color := clWhite;
-     for i := 1 to N do
-       for j := 1 to N do
-         if (A[i, j] = 3) then
-           begin
-             Canvas.Pen.Width := 3;
-             Canvas.Pen.Style := psSolid;
-             Canvas.MoveTo(X[i], Y[i]);
-             Canvas.LineTo(X[j], Y[j]);
-           end
-         else
-           if (A[i, j] = 2) then
-             begin
-               Canvas.Pen.Width := 1;
-               Canvas.Pen.Style := psDot;
-               Canvas.MoveTo(X[i], Y[i]);
-               Canvas.LineTo(X[j], Y[j]);
-             end;
-       Canvas.Pen.Width := 1;
-       Canvas.Pen.Style := psSolid;
-       for i := 1 to NodesCount do
-         begin
-           draw_graph_node(MAS_X[i], MAS_Y[i], i);
-           Canvas.Brush.Color := clWhite;
-           for j := 1 to NodesCount do
-             if (V[j] = i) then
-               Canvas.TextOut(MAS_X[i] + 10, MAS_Y[i] + 10, IntToStr(j));
-         end;
-       set_edges_direction(A, clBlack);
+  Canvas.Brush.Color := clWhite;
+  for i := 1 to N do
+    for j := 1 to N do
+      if (A[i, j] = 3) then
+      begin
+        Canvas.Pen.Width := 3;
+        Canvas.Pen.Style := psSolid;
+        Canvas.MoveTo(X[i], Y[i]);
+        Canvas.LineTo(X[j], Y[j]);
+      end
+      else
+      if (A[i, j] = 2) then
+      begin
+        Canvas.Pen.Width := 1;
+        Canvas.Pen.Style := psDot;
+        Canvas.MoveTo(X[i], Y[i]);
+        Canvas.LineTo(X[j], Y[j]);
+      end;
+  Canvas.Pen.Width := 1;
+  Canvas.Pen.Style := psSolid;
+  for i := 1 to NodesCount do
+  begin
+    draw_graph_node(MAS_X[i], MAS_Y[i], i);
+    Canvas.Brush.Color := clWhite;
+    for j := 1 to NodesCount do
+      if (V[j] = i) then
+        Canvas.TextOut(MAS_X[i] + 10, MAS_Y[i] + 10, IntToStr(j));
+  end;
+  set_edges_direction(A, clBlack);
 end;
 
 procedure TfrmMain.set_edges_direction(Mas: TMATRIX; EdgeColor: TColor);
 var
-   A, M1, M2: TMAS1;
-   b, X, XY, rXY, XY1, rXY1: TVECT1;
-   xp, yp, xn, yn, resx, resy, eps, x1, x2, y1, y2, a1, b1, r: real;
-   xp1, yp1, xn1, yn1, resx1, resy1, x11, x21, y11, y21, a11, b11, r1: real;
-   i, j, ii, text_X, text_Y: integer;
-   P: TVECT2;
-   pnt: TPoint;
+  A, M1, M2: TMAS1;
+  b, X, XY, rXY, XY1, rXY1: TVECT1;
+  xp, yp, xn, yn, resx, resy, eps, x1, x2, y1, y2, a1, b1, r: real;
+  xp1, yp1, xn1, yn1, resx1, resy1, x11, x21, y11, y21, a11, b11, r1: real;
+  i, j, ii, text_X, text_Y: integer;
+  P: TVECT2;
+  pnt: TPoint;
 begin
-     eps := 0.001;
-     M1[1, 1] := Cos(Pi/10); M1[1, 2] := -Sin(Pi/10);
-     M1[2, 1] := Sin(Pi/10); M1[2, 2] := Cos(Pi/10);
+  eps := 0.001;
+  M1[1, 1] := Cos(Pi / 10);
+  M1[1, 2] := -Sin(Pi / 10);
+  M1[2, 1] := Sin(Pi / 10);
+  M1[2, 2] := Cos(Pi / 10);
 
-     M2[1, 1] := Cos(Pi/10); M2[1, 2] := Sin(Pi/10);
-     M2[2, 1] := -Sin(Pi/10); M2[2, 2] := Cos(Pi/10);
-     for i := 1 to NodesCount do
-       for j := 1 to NodesCount do
-         begin
-           if (Mas[i, j] = 3) or (Mas[i, j] = 2) then
-             begin
-               if (MAS_X[i] > MAS_X[j]) then
-                 text_X := MAS_X[j] + ((MAS_X[i] - MAS_X[j]) div 2)
-               else
-                 text_X := MAS_X[i] + ((MAS_X[j] - MAS_X[i]) div 2);
+  M2[1, 1] := Cos(Pi / 10);
+  M2[1, 2] := Sin(Pi / 10);
+  M2[2, 1] := -Sin(Pi / 10);
+  M2[2, 2] := Cos(Pi / 10);
+  for i := 1 to NodesCount do
+    for j := 1 to NodesCount do
+    begin
+      if (Mas[i, j] = 3) or (Mas[i, j] = 2) then
+      begin
+        if (MAS_X[i] > MAS_X[j]) then
+          text_X := MAS_X[j] + ((MAS_X[i] - MAS_X[j]) div 2)
+        else
+          text_X := MAS_X[i] + ((MAS_X[j] - MAS_X[i]) div 2);
 
-               if (MAS_Y[i] > MAS_Y[j]) then
-                 text_Y := MAS_Y[j] + ((MAS_Y[i] - MAS_Y[j]) div 2)
-                 else
-                 text_Y := MAS_Y[i] + ((MAS_Y[j] - MAS_Y[i]) div 2);
+        if (MAS_Y[i] > MAS_Y[j]) then
+          text_Y := MAS_Y[j] + ((MAS_Y[i] - MAS_Y[j]) div 2)
+        else
+          text_Y := MAS_Y[i] + ((MAS_Y[j] - MAS_Y[i]) div 2);
 
-           xp := MAS_X[i];
-           yp := MAS_Y[i];
-           x1 := MAS_X[i];
-           y1 := MAS_Y[i];
-           x2 := text_X;
-           y2 := text_Y;
-           a1 := text_X;
-           b1 := text_Y;
-           r := 12;
-           repeat
-             A[1, 1] := df1x(xp, yp, x1, y1, x2, y2); A[1, 2] := df1y(xp, yp, x1, y1, x2, y2);
-             A[2, 1] := df2x(xp, yp, a1, b1, r); A[2, 2] := df2y(xp, yp, a1, b1, r);
+        xp := MAS_X[i];
+        yp := MAS_Y[i];
+        x1 := MAS_X[i];
+        y1 := MAS_Y[i];
+        x2 := text_X;
+        y2 := text_Y;
+        a1 := text_X;
+        b1 := text_Y;
+        r := 12;
+        repeat
+          A[1, 1] := df1x(xp, yp, x1, y1, x2, y2);
+          A[1, 2] := df1y(xp, yp, x1, y1, x2, y2);
+          A[2, 1] := df2x(xp, yp, a1, b1, r);
+          A[2, 2] := df2y(xp, yp, a1, b1, r);
 
-             b[1] := -f1(xp, yp, x1, y1, x2, y2); b[2] := -f2(xp, yp, a1, b1, r);
-             X := Kramer(A, b);
-             xn := xp + X[1]; yn := yp + X[2];
-             resx := abs(xn - xp);
-             resy := abs(yn - yp);
-             xp := xn;
-             yp := yn;
-           until((resx < eps) and (resy < eps));
+          b[1] := -f1(xp, yp, x1, y1, x2, y2);
+          b[2] := -f2(xp, yp, a1, b1, r);
+          X := Kramer(A, b);
+          xn := xp + X[1];
+          yn := yp + X[2];
+          resx := abs(xn - xp);
+          resy := abs(yn - yp);
+          xp := xn;
+          yp := yn;
+        until ((resx < eps) and (resy < eps));
 
-           pnt.X := text_X; pnt.Y := text_Y;
+        pnt.X := text_X;
+        pnt.Y := text_Y;
 
-           P[1] := pnt;
+        P[1] := pnt;
 
-           XY1[1] := xp - text_X; XY1[2] := yp - text_Y;
-           rXY1 := multiply(M1, XY1);
-           pnt.X := Round(rXY1[1]) + text_X; pnt.Y := Round(rXY1[2]) + text_Y;
-           P[2] := pnt;
-           rXY := multiply(M2, XY1);
-           pnt.X := Round(xp); pnt.Y := Round(yp);
-           P[3] := pnt;
-           pnt.X := Round(rXY[1]) + text_X; pnt.Y := Round(rXY[2]) + text_Y;
-           P[4] := pnt;
-           Image1.Canvas.Brush.Color := EdgeColor;
-           Image1.Canvas.Polygon(P);
-         end;
+        XY1[1] := xp - text_X;
+        XY1[2] := yp - text_Y;
+        rXY1 := multiply(M1, XY1);
+        pnt.X := Round(rXY1[1]) + text_X;
+        pnt.Y := Round(rXY1[2]) + text_Y;
+        P[2] := pnt;
+        rXY := multiply(M2, XY1);
+        pnt.X := Round(xp);
+        pnt.Y := Round(yp);
+        P[3] := pnt;
+        pnt.X := Round(rXY[1]) + text_X;
+        pnt.Y := Round(rXY[2]) + text_Y;
+        P[4] := pnt;
+        Image1.Canvas.Brush.Color := EdgeColor;
+        Image1.Canvas.Polygon(P);
+      end;
 
-     end;
+    end;
 end;
 
 function TfrmMain.f1(x, y: real; x1, y1, x2, y2: real): real;
 begin
-  Result := (y1-y2)*x + (x2-x1)*y + (x1*y2 - x2*y1);
+  Result := (y1 - y2) * x + (x2 - x1) * y + (x1 * y2 - x2 * y1);
 end;
 
 function TfrmMain.f2(x, y: real; a, b, r: real): real;
 begin
-  Result := (x-a)*(x-a) + (y-b)*(y-b)-r*r;
+  Result := (x - a) * (x - a) + (y - b) * (y - b) - r * r;
 end;
 
 function TfrmMain.df1x(x, y: real; x1, y1, x2, y2: real): real;
 begin
-     result := (f1(x+h, y, x1, y1, x2, y2)-f1(x, y, x1, y1, x2, y2))/H;
+  Result := (f1(x + h, y, x1, y1, x2, y2) - f1(x, y, x1, y1, x2, y2)) / H;
 end;
 
 
 function TfrmMain.df2x(x, y: real; a, b, r: real): real;
 begin
-     result := (f2(x+h, y, a, b, r)-f2(x, y, a, b, r))/H;
+  Result := (f2(x + h, y, a, b, r) - f2(x, y, a, b, r)) / H;
 end;
 
 
 function TfrmMain.df1y(x, y: real; x1, y1, x2, y2: real): real;
 begin
-  Result := (f1(x, y+h, x1, y1, x2, y2)-f1(x, y, x1, y1, x2, y2))/H;
+  Result := (f1(x, y + h, x1, y1, x2, y2) - f1(x, y, x1, y1, x2, y2)) / H;
 end;
 
 function TfrmMain.df2y(x, y: real; a, b, r: real): real;
 begin
-  Result := (f2(x, y+h, a, b, r)-f2(x, y, a, b, r))/H;
+  Result := (f2(x, y + h, a, b, r) - f2(x, y, a, b, r)) / H;
 end;
 
 function TfrmMain.kramer(A: TMAS1; b: TVECT1): TVECT1;
 var
-   i, j: integer;
-   d, d1: real;
-   A2: TMAS1;
+  i, j: integer;
+  d, d1: real;
+  A2: TMAS1;
 begin
-     d := det(A);
-     for i := 1 to 2 do
-       begin
-         A2 := A;
-         for j := 1 to 2 do
-           A2[j, i] := b[j];
-         d1 := det(A2);
-         Result[i] := d1/d;
-       end;
+  d := det(A);
+  for i := 1 to 2 do
+  begin
+    A2 := A;
+    for j := 1 to 2 do
+      A2[j, i] := b[j];
+    d1 := det(A2);
+    Result[i] := d1 / d;
+  end;
 end;
 
 
 function TfrmMain.det(A: TMAS1): real;
 begin
-  Result:=A[1, 1]*A[2, 2] - A[1, 2]*A[2,1];
+  Result := A[1, 1] * A[2, 2] - A[1, 2] * A[2, 1];
 end;
 
 function TfrmMain.multiply(A: TMAS1; b: TVECT1): TVECT1;
 var
-   i, j: integer;
-   S: real;
+  i, j: integer;
+  S: real;
 begin
-     for i := 1 to 2 do
-       begin
-         S := 0;
-         for j := 1 to 2 do
-           S := S + A[i, j] * b[j];
-         Result[i] := S;
-       end;
+  for i := 1 to 2 do
+  begin
+    S := 0;
+    for j := 1 to 2 do
+      S := S + A[i, j] * b[j];
+    Result[i] := S;
+  end;
 end;
 
 end.
