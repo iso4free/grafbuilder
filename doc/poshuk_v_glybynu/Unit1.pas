@@ -5,15 +5,18 @@ unit Unit1;
 interface
 
 uses
-  LCLIntf, LCLType, LMessages, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  LCLIntf, LCLType, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ExtCtrls, StdCtrls, Buttons;
+const
+//максимальна розмірність масиву координат
+CMAS_MAXSIZE = 100;
 
 type
-    MAS = array [1..10, 1..10] of integer;
-    VECT = array [1..10] of integer;
-    MAS1 = array[1..2, 1..2] of real;
-    VECT1 = array[1..2] of real;
-    VECT2 = array[1..4] of TPoint;
+    TMATRIX = array [1..CMAS_MAXSIZE, 1..CMAS_MAXSIZE] of integer;
+    TVECT = array [1..CMAS_MAXSIZE] of integer;
+    TMAS1 = array[1..2, 1..2] of real;
+    TVECT1 = array[1..2] of real;
+    TVECT2 = array[1..4] of TPoint;
 
 type
   TForm1 = class(TForm)
@@ -22,8 +25,8 @@ type
     SpeedButton1: TSpeedButton;
     SpeedButton2: TSpeedButton;
     Label1: TLabel;
-    Button1: TButton;
-    Button2: TButton;
+    BuildTree: TButton;
+    DeleteGraf: TButton;
     procedure Image1MouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure draw_graph_node(X: integer; Y: integer; N: integer; Image: TImage);
@@ -31,7 +34,7 @@ type
     procedure Image1MouseMove(Sender: TObject; Shift: TShiftState; X,
       Y: Integer);
     procedure clear_img(Image: TImage);
-    procedure draw_graph_edge(A: MAS; X: VECT; Y: VECT; N: integer; Image: TImage);
+    procedure draw_graph_edge(A: TMATRIX; X: TVECT; Y: TVECT; N: integer; Image: TImage);
     procedure Image1MouseUp(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure Label1Click(Sender: TObject);
@@ -39,19 +42,19 @@ type
     procedure Label1MouseMove(Sender: TObject; Shift: TShiftState; X,
       Y: Integer);
     procedure depth_search(k: integer; n: integer);
-    procedure depth_search_tree_bild(A: MAS; X: VECT; Y: VECT; V: VECT; N: integer; Image: TImage);
+    procedure depth_search_tree_bild(A: TMATRIX; X: TVECT; Y: TVECT; V: TVECT; N: integer; Image: TImage);
     function f1(x, y: real; x1, y1, x2, y2: real): real;
     function f2(x, y: real; a, b, r: real): real;
     function df1x(x, y: real; x1, y1, x2, y2: real): real;
     function df2x(x, y: real;  a, b, r: real): real;
     function df1y(x, y: real; x1, y1, x2, y2: real): real;
     function df2y(x, y: real;  a, b, r: real): real;
-    function kramer(A: MAS1; b: VECT1): VECT1;
-    function det(A: MAS1): real;
-    function multiply(A: MAS1; b: VECT1): VECT1;
-    procedure set_edges_direction(Mas: MAS; Color: TColor);
-    procedure Button1Click(Sender: TObject);
-    procedure Button2Click(Sender: TObject);
+    function kramer(A: TMAS1; b: TVECT1): TVECT1;
+    function det(A: TMAS1): real;
+    function multiply(A: TMAS1; b: TVECT1): TVECT1;
+    procedure set_edges_direction(Mas: TMATRIX; Color: TColor);
+    procedure BuildTreeClick(Sender: TObject);
+    procedure DeleteGrafClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -66,10 +69,10 @@ implementation
 {$R *.frm}
 
 var
-  MAS_X, MAS_Y, MAS_N, V: VECT;
-  Matrix, A1: MAS;
-  i: integer;
-  nodes_count, edge_start, edge_end: integer;
+  MAS_X, MAS_Y, MAS_N, V: TVECT;
+  Edges, A1: TMATRIX;
+  Glob_counter: integer;
+  NodesCount, StartNode, EndNode: integer;
   depth: boolean;
 
 procedure TForm1.draw_graph_node(X, Y, N: integer; Image: TImage);
@@ -96,8 +99,8 @@ begin
     begin
       if (ssLeft in Shift) then
         begin
-         if (nodes_count > 0) then
-           for i := 1 to nodes_count do
+         if (NodesCount > 0) then
+           for i := 1 to NodesCount do
              if (X > (MAS_X[i] - 50)) and (X < (MAS_X[i] + 50)) and (Y > (MAS_Y[i] - 50)) and (Y < (MAS_Y[i] + 50)) then
                begin
                  p := False;
@@ -105,22 +108,22 @@ begin
                end;
           if (p) then
             begin
-              nodes_count := nodes_count + 1;
-              MAS_X[nodes_count ] := X;
-              MAS_Y[nodes_count ] := Y;
-              MAS_N[nodes_count ] := nodes_count;
-              draw_graph_node(X, Y, nodes_count , Image1);
+              NodesCount := NodesCount + 1;
+              MAS_X[NodesCount ] := X;
+              MAS_Y[NodesCount ] := Y;
+              MAS_N[NodesCount ] := NodesCount;
+              draw_graph_node(X, Y, NodesCount , Image1);
             end;
         end;
     end;
     if (SpeedButton2.Down = True) then
       begin
         if (ssLeft in Shift) then
-          for i := 1 to nodes_count do
+          for i := 1 to NodesCount do
             begin
               if (X >= (MAS_X[i] - 12)) and (X <= (MAS_X[i] + 12)) and (Y >= (MAS_Y[i] - 12)) and (Y <= (MAS_Y[i] + 12)) then
                 begin
-                  edge_start := i;
+                  StartNode := i;
                   break;
                 end;
             end;
@@ -134,9 +137,9 @@ begin
      depth := false;
      Image1.Canvas.Brush.Color := clWhite;
      Image1.Canvas.FillRect(Rect(0, 0, Image1.Width, Image1.Height));
-     for i := 1 to 10 do
-       for j := 1 to 10 do
-         Matrix[i, j] := 0;
+     for i := 1 to CMAS_MAXSIZE do
+       for j := 1 to CMAS_MAXSIZE do
+         Edges[i, j] := 0;
 end;
 
 procedure TForm1.Image1MouseMove(Sender: TObject; Shift: TShiftState; X,
@@ -145,15 +148,15 @@ var
    i: integer;
 begin
      if (depth = true) then Exit;
-     if (edge_start <> 0) and (ssLeft in Shift) then
+     if (StartNode <> 0) and (ssLeft in Shift) then
        begin
          clear_img(Image1);
-         draw_graph_edge(Matrix, MAS_X, MAS_Y, nodes_count, Image1);
+         draw_graph_edge(Edges, MAS_X, MAS_Y, NodesCount, Image1);
          Image1.Canvas.Pen.Style := psDot;
-         Image1.Canvas.MoveTo(MAS_X[edge_start], MAS_Y[edge_start]);
+         Image1.Canvas.MoveTo(MAS_X[StartNode], MAS_Y[StartNode]);
          Image1.Canvas.LineTo(X, Y);
          Image1.Canvas.Pen.Style := psSolid;
-         for i := 1 to nodes_count do
+         for i := 1 to NodesCount do
            draw_graph_node(MAS_X[i], MAS_Y[i], i, Image1);
        end;
 end;
@@ -164,7 +167,7 @@ begin
      Image.Canvas.Rectangle(0, 0, Image.Width, Image.Height);
 end;
 
-procedure TForm1.draw_graph_edge(A: MAS; X, Y: VECT; N: integer;
+procedure TForm1.draw_graph_edge(A: TMATRIX; X, Y: TVECT; N: integer;
   Image: TImage);
 var
   i, j: integer;
@@ -188,27 +191,27 @@ var
    i, j: integer;
 begin
      if (depth = true) then Exit;
-     draw_graph_edge(Matrix, MAS_X, MAS_Y, nodes_count, Image1);
-     for i := 1 to nodes_count do
+     draw_graph_edge(Edges, MAS_X, MAS_Y, NodesCount, Image1);
+     for i := 1 to NodesCount do
        draw_graph_node(MAS_X[i], MAS_Y[i], i, Image1);
-      if (edge_start <> 0) then
+      if (StartNode <> 0) then
         begin
-          for i := 1 to nodes_count do
+          for i := 1 to NodesCount do
             if (X >= (MAS_X[i] - 12)) and (X <= (MAS_X[i] + 12)) and (Y >= (MAS_Y[i] - 12)) and (Y <= (MAS_Y[i] + 12)) then
               begin
-                edge_end := i;
-                if (edge_end <> edge_start) then
+                EndNode := i;
+                if (EndNode <> StartNode) then
                   begin
-                    Matrix[edge_start, edge_end] := 1;
-                    Matrix[edge_end, edge_start] := 1;
-                    draw_graph_edge(Matrix, MAS_X, MAS_Y, nodes_count, Image1);
+                    Edges[StartNode, EndNode] := 1;
+                    Edges[EndNode, StartNode] := 1;
+                    draw_graph_edge(Edges, MAS_X, MAS_Y, NodesCount, Image1);
                     Image1.Canvas.Pen.Style := psSolid;
-                    for j := 1 to nodes_count do
+                    for j := 1 to NodesCount do
                       draw_graph_node(MAS_X[j], MAS_Y[j], j, Image1);
                     break;
                   end;
               end;
-            edge_start := 0;
+            StartNode := 0;
         end;
 end;
 
@@ -247,29 +250,29 @@ begin
              if (kk = 0) then
                begin
                  A1[k, j] := 3;
-                 i := i + 1;
-                 V[i] := j;
+                 Glob_counter := Glob_counter + 1;
+                 V[Glob_counter] := j;
                  depth_search(j, n);
                end;
            end;
        end;
 end;
 
-procedure TForm1.Button1Click(Sender: TObject);
+procedure TForm1.BuildTreeClick(Sender: TObject);
 var
    ii: integer;
 begin
      depth := true;
-     for ii := 1 to nodes_count do
+     for ii := 1 to NodesCount do
        V[ii] := 0;
-     A1 := Matrix;
-     i := 1;
-     V[i] := 1;
-     depth_search(1, nodes_count);
-     depth_search_tree_bild(A1, MAS_X, MAS_Y, V, nodes_count, Image1);
+     A1 := Edges;
+     Glob_counter := 1;
+     V[Glob_counter] := 1;
+     depth_search(5, NodesCount);
+     depth_search_tree_bild(A1, MAS_X, MAS_Y, V, NodesCount, Image1);
 end;
 
-procedure TForm1.depth_search_tree_bild(A: MAS; X, Y, V: VECT; N: integer;
+procedure TForm1.depth_search_tree_bild(A: TMATRIX; X, Y, V: TVECT; N: integer;
   Image: TImage);
 var
    i, j: integer;
@@ -294,11 +297,11 @@ begin
              end;
        Image.Canvas.Pen.Width := 1;
        Image.Canvas.Pen.Style := psSolid;
-       for i := 1 to nodes_count do
+       for i := 1 to NodesCount do
          begin
            draw_graph_node(MAS_X[i], MAS_Y[i], i, Image);
            Image.Canvas.Brush.Color := clWhite;
-           for j := 1 to nodes_count do
+           for j := 1 to NodesCount do
              if (V[j] = i) then
                Image.Canvas.TextOut(MAS_X[i] + 10, MAS_Y[i] + 10, IntToStr(j));
          end;
@@ -347,17 +350,17 @@ begin
      f2 := (x-a)*(x-a) + (y-b)*(y-b)-r*r;
 end;
 
-function TForm1.det(A: MAS1): real;
+function TForm1.det(A: TMAS1): real;
 begin
      det := A[1, 1]*A[2, 2] - A[1, 2]*A[2,1];
 end;
 
-function TForm1.kramer(A: MAS1; b: VECT1): VECT1;
+function TForm1.kramer(A: TMAS1; b: TVECT1): TVECT1;
 var
    i, j: integer;
    d, d1: real;
-   res: VECT1;
-   A2: MAS1;
+   res: TVECT1;
+   A2: TMAS1;
 begin
      d := det(A);
      for i := 1 to 2 do
@@ -371,9 +374,9 @@ begin
      kramer := res;
 end;
 
-function TForm1.multiply(A: MAS1; b: VECT1): VECT1;
+function TForm1.multiply(A: TMAS1; b: TVECT1): TVECT1;
 var
-   res: VECT1;
+   res: TVECT1;
    i, j: integer;
    S: real;
 begin
@@ -387,14 +390,14 @@ begin
      multiply := res;
 end;
 
-procedure TForm1.set_edges_direction(Mas: MAS; Color: TColor);
+procedure TForm1.set_edges_direction(Mas: TMATRIX; Color: TColor);
 var
-   A, M1, M2: MAS1;
-   b, X, XY, rXY, XY1, rXY1: VECT1;
+   A, M1, M2: TMAS1;
+   b, X, XY, rXY, XY1, rXY1: TVECT1;
    xp, yp, xn, yn, resx, resy, eps, x1, x2, y1, y2, a1, b1, r: real;
    xp1, yp1, xn1, yn1, resx1, resy1, x11, x21, y11, y21, a11, b11, r1: real;
    i, j, ii, text_X, text_Y: integer;
-   P: VECT2;
+   P: TVECT2;
    pnt: TPoint;
 begin
      eps := 0.001;
@@ -403,8 +406,8 @@ begin
 
      M2[1, 1] := Cos(Pi/10); M2[1, 2] := Sin(Pi/10);
      M2[2, 1] := -Sin(Pi/10); M2[2, 2] := Cos(Pi/10);
-     for i := 1 to nodes_count do
-       for j := 1 to nodes_count do
+     for i := 1 to NodesCount do
+       for j := 1 to NodesCount do
          begin
            if (Mas[i, j] = 3) or (Mas[i, j] = 2) then
              begin
@@ -460,17 +463,17 @@ begin
      end;
 end;
 
-procedure TForm1.Button2Click(Sender: TObject);
+procedure TForm1.DeleteGrafClick(Sender: TObject);
 var
    i, j: integer;
 begin
      depth := false;
-     nodes_count := 0;
+     NodesCount := 0;
      clear_img(Image1);
-     for i := 1 to 10 do
+     for i := 1 to CMAS_MAXSIZE do
        begin
-         for j := 1 to 10 do
-           Matrix[i, j] := 0;
+         for j := 1 to CMAS_MAXSIZE do
+           Edges[i, j] := 0;
          MAS_X[i] := 0;
          MAS_Y[i] := 0;
          MAS_N[i] := 0;

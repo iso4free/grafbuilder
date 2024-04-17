@@ -88,7 +88,7 @@ type
     procedure depth_search(k: integer; n: integer);
     //візуальна побудова дерева пошуку в глибину
     procedure depth_search_tree_bild(A: TMATRIX; X, Y, V: TVECT; N: integer);
-    //
+    //відобразити напрямок обходу
     procedure set_edges_direction(Mas: TMATRIX; EdgeColor: TColor);
     function f1(x, y: real; x1, y1, x2, y2: real): real;
     function f2(x, y: real; a, b, r: real): real;

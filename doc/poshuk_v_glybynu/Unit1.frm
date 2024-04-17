@@ -1,7 +1,7 @@
 object Form1: TForm1
-  Left = 350
+  Left = 341
   Height = 480
-  Top = 194
+  Top = 199
   Width = 600
   Caption = 'www.mathros.net.ua'
   ClientHeight = 480
@@ -65,23 +65,23 @@ object Form1: TForm1
       OnMouseLeave = Label1MouseLeave
       OnMouseMove = Label1MouseMove
     end
-    object Button1: TButton
+    object BuildTree: TButton
       Left = 336
       Height = 22
       Top = 24
       Width = 250
       Caption = 'Побудувати дерево обходу в глибину'
       TabOrder = 0
-      OnClick = Button1Click
+      OnClick = BuildTreeClick
     end
-    object Button2: TButton
+    object DeleteGraf: TButton
       Left = 208
       Height = 22
       Top = 24
       Width = 100
       Caption = 'Видалити граф'
       TabOrder = 1
-      OnClick = Button2Click
+      OnClick = DeleteGrafClick
     end
   end
 end
