@@ -29,7 +29,8 @@ type
 
   TfrmMain = class(TForm)
     bbNewGraf: TBitBtn;
-    BitBtn2: TBitBtn;
+    bbWidth: TBitBtn;
+    bbDepth: TBitBtn;
     Image1: TImage;
     MainMenu1: TMainMenu;
     Memo1: TMemo;
@@ -47,7 +48,8 @@ type
     sbAddNode: TSpeedButton;
     sbAddEdge: TSpeedButton;
     procedure BbNewGraph(Sender: TObject);
-    procedure BitBtn2Click(Sender: TObject);
+    procedure bbWidthClick(Sender: TObject);
+    procedure bbDepthClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure Image1MouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: integer);
@@ -95,10 +97,15 @@ type
     function df2x(x, y: real; a, b, r: real): real;
     function df1y(x, y: real; x1, y1, x2, y2: real): real;
     function df2y(x, y: real; a, b, r: real): real;
+    //функція розв'язку квадратних систем лінійних алгебраїчних рівнянь із ненульовим визначником основної матриці методом Крамера
+    //використовується при визначенні напрямку обходу
     function kramer(A: TMAS1; b: TVECT1): TVECT1;
+    //визначник матриці
     function det(A: TMAS1): real;
     function multiply(A: TMAS1; b: TVECT1): TVECT1;
-
+    //пошук в ширину
+    procedure width_search_tree_bild(A: TMatrix; X: TVECT; Y: TVECT;
+      V: TVECT; N: integer; Image: TImage);
   end;
 
 var
@@ -123,8 +130,9 @@ var
   //змінні для пошуку в глибину
   depth: boolean;
   a1: TMATRIX;
-  V: TVECT;
+  V, V0, V1, V2: TVECT;
   glob_counter: integer;
+  rezstr, connectivity_components: string;
 
 
 implementation
@@ -145,28 +153,110 @@ begin
   //Підготовка програми до роботи - ініціалізація даних та очистка зображення
   PrepareData;
   ClearImage;
+  Memo1.Clear;
 end;
 
-procedure TfrmMain.BitBtn2Click(Sender: TObject);
+procedure TfrmMain.bbWidthClick(Sender: TObject);
 var
-  ii: integer;
+  i, j, m, z, l1, l2, k, ii, kk: integer;
 begin
-  if NodesCount = 0 then
-  begin
-    Memo1.Lines.Add(
-      'Граф немає вершин, пошук в глибину неможливий!');
-    Memo1.CaretPos := Point(0, Memo1.Lines.Count - 1);
-    Exit;
-  end;
-  //todo: пошук в глибину, обхід від вибраної вершини
   depth := True;
   for ii := 1 to NodesCount do
+  begin
     V[ii] := 0;
-  A1 := edges;
-  glob_counter := 1;
-  V[glob_counter] := 1;
-  depth_search(1, NodesCount);
-  depth_search_tree_bild(A1, MAS_X, MAS_Y, V, NodesCount);
+    V0[ii] := 0;
+  end;
+  A1 := Edges;
+  m := 1;
+  l1 := m;
+  V0[m] := 1;
+  V1 := V0;
+  V[1] := 0;
+  kk := 1;
+  while (True) do
+  begin
+    l2 := 0;
+    for z := 1 to l1 do
+    begin
+      i := V1[z];
+      for j := 1 to NodesCount do
+        if (A1[i, j] = 1) then
+        begin
+          k := 0;
+          for ii := 1 to m do
+            if (V0[ii] = j) then
+            begin
+              k := k + 1;
+              if (A1[j, i] <> 2) and (A1[j, i] <> 3) then
+                A1[i, j] := 2;
+            end;
+          if (k = 0) then
+          begin
+            A1[i, j] := 3;
+            m := m + 1;
+            V0[m] := j;
+            l2 := l2 + 1;
+            V2[l2] := j;
+            V[j] := kk;
+          end;
+        end;
+    end;
+    l1 := l2;
+    V1 := V2;
+    kk := kk + 1;
+    if (l1 = 0) then
+      break;
+  end;
+  width_search_tree_bild(A1, MAS_X, MAS_Y, V, NodesCount, Image1);
+end;
+
+procedure TfrmMain.bbDepthClick(Sender: TObject);
+var
+   ii, i1, j1, k: integer;
+begin
+  if NodesCount = 0 then
+   begin
+     Memo1.Lines.Add(
+       'Граф немає вершин, пошук в глибину неможливий!');
+     Memo1.CaretPos := Point(0, Memo1.Lines.Count - 1);
+     Exit;
+   end;
+   //todo: пошук в глибину, обхід від вибраної вершини
+     depth := true;
+     for ii := 1 to NodesCount do
+       V[ii] := 0;
+     A1 := Edges;
+     while (glob_counter < NodesCount) do
+       begin
+         if (glob_counter = 0) then
+           begin
+             glob_counter := glob_counter + 1;
+             V[glob_counter] := 1;
+           end
+         else
+           begin
+             for i1 := 1 to NodesCount do
+               begin
+                 k := 0;
+                 for j1 := 1 to glob_counter do
+                   if (V[j1] = i1) then
+                     k := k + 1;
+                 if (k = 0) then
+                   break;
+               end;
+             glob_counter := glob_counter + 1;
+             V[glob_counter] := i1;
+           end;
+         rezstr := IntToStr(V[glob_counter]);
+         depth_search(V[glob_counter], NodesCount);
+
+         if (connectivity_components = '') then
+           connectivity_components := '{' + rezstr + '}'
+         else
+           connectivity_components := connectivity_components + ', {' + rezstr + '}';
+       end;
+     depth_search_tree_bild(A1, MAS_X, MAS_Y, V, NodesCount);
+ ShowMessage('Граф має наступні компоненти зв''язності: '+connectivity_components);
 end;
 
 procedure TfrmMain.Image1MouseDown(Sender: TObject; Button: TMouseButton;
@@ -318,10 +408,10 @@ begin
     end;
     WriteLn(f, EdgesCount);
     if EdgesCount <> 0 then for i := 1 to EdgesCount do
-        for j:= 1 to EdgesCount do
-      begin
-        WriteLn(f, edges[i, j]);
-      end;
+        for j := 1 to EdgesCount do
+        begin
+          WriteLn(f, edges[i, j]);
+        end;
     CloseFile(f);
   end;
 end;
@@ -348,17 +438,17 @@ begin
       mas_x[i] := StrToInt(s);
       ReadLN(f, s);
       mas_y[i] := StrToInt(s);
-      ReadLn(f,s);
+      ReadLn(f, s);
       mas_n[i] := StrToInt(s);
     end;
     ReadLN(f, s);
     EdgesCount := StrToInt(s);
     if EdgesCount <> 0 then for i := 1 to EdgesCount do
-        for j:= 1 to EdgesCount do
-      begin
-        ReadLN(f, s);
-        edges[i, j] := StrToInt(s);
-      end;
+        for j := 1 to EdgesCount do
+        begin
+          ReadLN(f, s);
+          edges[i, j] := StrToInt(s);
+        end;
     CloseFile(f);
   end;
   ClearImage;
@@ -404,6 +494,7 @@ begin
     end;
   end;
   depth := False;
+  sbAddNode.Down := True;
 end;
 
 procedure TfrmMain.ClearImage;
@@ -418,8 +509,9 @@ begin
   begin
     Canvas.Pen.Width := 1;
     Canvas.Pen.Color := clBlack;
-    if (depth and (N=1)) then Canvas.Brush.Color:=clYellow
-      else Canvas.Brush.Color := clActiveCaption;
+    if (depth and (N = 1)) then Canvas.Brush.Color := clYellow
+    else
+      Canvas.Brush.Color := clActiveCaption;
     Canvas.Ellipse(X - 12, Y - 12, X + 12, Y + 12);
     Canvas.TextOut(X - (Length(IntToStr(N)) * 3), Y - 5, IntToStr(N));
   end;
@@ -788,6 +880,40 @@ begin
       S := S + A[i, j] * b[j];
     Result[i] := S;
   end;
+end;
+
+procedure TfrmMain.width_search_tree_bild(A: TMatrix; X: TVECT; Y: TVECT;
+  V: TVECT; N: integer; Image: TImage);
+var
+  i, j: integer;
+begin
+  Image.Canvas.Brush.Color := clWhite;
+  for i := 1 to N do
+    for j := 1 to N do
+      if (A[i, j] = 3) then
+      begin
+        Image.Canvas.Pen.Width := 3;
+        Image.Canvas.Pen.Style := psSolid;
+        Image.Canvas.MoveTo(X[i], Y[i]);
+        Image.Canvas.LineTo(X[j], Y[j]);
+      end
+      else
+      if (A[i, j] = 2) then
+      begin
+        Image.Canvas.Pen.Width := 1;
+        Image.Canvas.Pen.Style := psDot;
+        Image.Canvas.MoveTo(X[i], Y[i]);
+        Image.Canvas.LineTo(X[j], Y[j]);
+      end;
+  Image.Canvas.Pen.Width := 1;
+  Image.Canvas.Pen.Style := psSolid;
+  for i := 1 to NodesCount do
+  begin
+    draw_graph_node(MAS_X[i], MAS_Y[i], i);
+    Image.Canvas.Brush.Color := clWhite;
+    Image.Canvas.TextOut(MAS_X[i] + 10, MAS_Y[i] + 10, IntToStr(V[i]));
+  end;
+  set_edges_direction(A, clBlack);
 end;
 
 end.
