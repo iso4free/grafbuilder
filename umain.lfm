@@ -1,10 +1,10 @@
 object frmMain: TfrmMain
   Left = 370
-  Height = 385
+  Height = 359
   Top = 409
   Width = 792
   Caption = 'Graph builder'
-  ClientHeight = 385
+  ClientHeight = 359
   ClientWidth = 792
   DefaultMonitor = dmPrimary
   Menu = MainMenu1
@@ -13,12 +13,12 @@ object frmMain: TfrmMain
   LCLVersion = '3.2.0.0'
   object Panel1: TPanel
     Left = 0
-    Height = 50
+    Height = 44
     Top = 0
     Width = 792
     Align = alTop
     AutoSize = True
-    ClientHeight = 50
+    ClientHeight = 44
     ClientWidth = 792
     TabOrder = 0
     object sbAddNode: TSpeedButton
@@ -27,7 +27,7 @@ object frmMain: TfrmMain
       AnchorSideBottom.Control = bbNewGraf
       AnchorSideBottom.Side = asrBottom
       Left = 1
-      Height = 48
+      Height = 42
       Top = 1
       Width = 175
       Anchors = [akTop, akLeft, akBottom]
@@ -174,7 +174,7 @@ object frmMain: TfrmMain
       AnchorSideBottom.Control = bbNewGraf
       AnchorSideBottom.Side = asrBottom
       Left = 176
-      Height = 48
+      Height = 42
       Top = 1
       Width = 153
       Anchors = [akTop, akLeft, akBottom]
@@ -318,10 +318,10 @@ object frmMain: TfrmMain
       AnchorSideTop.Side = asrCenter
       AnchorSideRight.Control = Panel1
       AnchorSideRight.Side = asrBottom
-      Left = 665
-      Height = 48
+      Left = 671
+      Height = 42
       Top = 1
-      Width = 126
+      Width = 120
       Anchors = [akTop, akRight]
       AutoSize = True
       Caption = 'Новий граф'
@@ -467,7 +467,7 @@ object frmMain: TfrmMain
       AnchorSideBottom.Control = sbAddNode
       AnchorSideBottom.Side = asrBottom
       Left = 329
-      Height = 48
+      Height = 42
       Top = 1
       Width = 159
       Anchors = [akTop, akLeft, akBottom]
@@ -614,7 +614,7 @@ object frmMain: TfrmMain
       AnchorSideBottom.Control = sbAddNode
       AnchorSideBottom.Side = asrBottom
       Left = 488
-      Height = 48
+      Height = 42
       Top = 1
       Width = 176
       Anchors = [akTop, akLeft, akBottom]
@@ -758,7 +758,7 @@ object frmMain: TfrmMain
   object Memo1: TMemo
     Left = 0
     Height = 90
-    Top = 295
+    Top = 269
     Width = 792
     Align = alBottom
     ScrollBars = ssVertical
@@ -766,8 +766,8 @@ object frmMain: TfrmMain
   end
   object Image1: TImage
     Left = 0
-    Height = 245
-    Top = 50
+    Height = 225
+    Top = 44
     Width = 792
     Align = alClient
     OnMouseDown = Image1MouseDown

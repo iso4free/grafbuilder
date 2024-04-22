@@ -69,7 +69,7 @@ type
     //очистка зображення перед малюванням
     procedure ClearImage;
     //намалювати вершину графа в координатах x,y з індексом N
-    procedure draw_graph_node(X, Y, N: integer; nodecolor : TColor = clActiveCaption);
+    procedure draw_graph_node(X, Y, N: integer; nodecolor: TColor = clActiveCaption);
     //намалювати ребра
     procedure draw_graph_edge;
     //намалювати граф повністю
@@ -165,10 +165,12 @@ begin
     Memo1.CaretPos := Point(0, Memo1.Lines.Count - 1);
     Exit;
   end;
+  ClearImage;
+  DrawGraph;
   depth := True;
-  isConnectivity:=True;
-  rezstr:='';
-  connectivity_components:='';
+  isConnectivity := True;
+  rezstr := '';
+  connectivity_components := '';
   for Glob_Counter := 1 to NodesCount do
   begin
     V[Glob_Counter] := 0;
@@ -229,11 +231,13 @@ begin
     Memo1.CaretPos := Point(0, Memo1.Lines.Count - 1);
     Exit;
   end;
+  ClearImage;
+  DrawGraph;
   //пошук в глибину, обхід від вибраної вершини
   depth := True;
   isConnectivity := True;
-  rezstr:='';
-  connectivity_components:='';
+  rezstr := '';
+  connectivity_components := '';
   //вважаємо, що граф зв'язний по замовчуванню
   for ii := 1 to NodesCount do
     V[ii] := 0;
@@ -702,7 +706,7 @@ begin
       begin
         A1[k, j] := 3;
         Inc(glob_counter);
-        if glob_counter>CMAS_MAXSIZE then Break;
+        if glob_counter > CMAS_MAXSIZE then Break;
         V[glob_counter] := j;
         depth_search(j, n);
       end;
@@ -864,42 +868,42 @@ begin
   end;
 end;
 
-procedure TfrmMain.search_tree_bild(A: TMatrix; X: TVECT; Y: TVECT; V: TVECT;
-  N: integer);
+procedure TfrmMain.search_tree_bild(A: TMatrix; X: TVECT; Y: TVECT;
+  V: TVECT; N: integer);
 var
   i, j: integer;
 begin
-  with Image1 do
-  begin
-    Canvas.Brush.Color := clWhite;
-    for i := 1 to N do
-      for j := 1 to N do
-        if (A[i, j] = 3) then
-        begin
-          Canvas.Pen.Width := 3;
-          Canvas.Pen.Style := psSolid;
-          Canvas.MoveTo(X[i], Y[i]);
-          Canvas.LineTo(X[j], Y[j]);
-          draw_graph_node(X[i],Y[i], i, clGreen);
-        end
-        else
-        if (A[i, j] = 2) then
-        begin
-          Canvas.Pen.Width := 1;
-          Canvas.Pen.Style := psDot;
-          Canvas.MoveTo(X[i], Y[i]);
-          Canvas.LineTo(X[j], Y[j]);
-          draw_graph_node(X[i],Y[i], i, clSkyBlue);
-        end;
-    Canvas.Pen.Width := 1;
-    Canvas.Pen.Style := psSolid;
-    for i := 1 to NodesCount do
+  Canvas.Brush.Color := clWhite;
+  for i := 1 to N do
+    for j := 1 to N do
     begin
-      Canvas.Brush.Color := clWhite;
-      Canvas.TextOut(MAS_X[i] + 10, MAS_Y[i] + 10, IntToStr(V[i]));
+      if (A[i, j] = 3) then
+      begin
+        Canvas.Pen.Width := 3;
+        Canvas.Pen.Style := psSolid;
+        Canvas.MoveTo(X[i], Y[i] + CNODE_RADIUS * 2);
+        Canvas.LineTo(X[j], Y[j] + CNODE_RADIUS * 2);
+      end
+      else
+      if (A[i, j] = 2) then
+      begin
+        Canvas.Pen.Width := 1;
+        Canvas.Pen.Style := psDot;
+        Canvas.MoveTo(X[i], Y[i] + CNODE_RADIUS * 2);
+        Canvas.LineTo(X[j], Y[j] + CNODE_RADIUS * 2);
+      end;
+      Application.ProcessMessages;
+      Sleep(100);
     end;
-    set_edges_direction(A, clRed);
+  Canvas.Pen.Width := 1;
+  Canvas.Pen.Style := psSolid;
+  for i := 1 to NodesCount do
+  begin
+    draw_graph_node(MAS_X[i], MAS_Y[i], i);
+    Application.ProcessMessages;
+    Sleep(100);
   end;
+  set_edges_direction(A, clLime);
 end;
 
 end.
