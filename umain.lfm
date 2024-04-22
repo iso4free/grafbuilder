@@ -1,11 +1,11 @@
 object frmMain: TfrmMain
   Left = 370
-  Height = 378
-  Top = 282
-  Width = 786
+  Height = 385
+  Top = 409
+  Width = 792
   Caption = 'Graph builder'
-  ClientHeight = 378
-  ClientWidth = 786
+  ClientHeight = 385
+  ClientWidth = 792
   DefaultMonitor = dmPrimary
   Menu = MainMenu1
   OnCreate = FormCreate
@@ -13,13 +13,13 @@ object frmMain: TfrmMain
   LCLVersion = '3.2.0.0'
   object Panel1: TPanel
     Left = 0
-    Height = 44
+    Height = 50
     Top = 0
-    Width = 786
+    Width = 792
     Align = alTop
     AutoSize = True
-    ClientHeight = 44
-    ClientWidth = 786
+    ClientHeight = 50
+    ClientWidth = 792
     TabOrder = 0
     object sbAddNode: TSpeedButton
       AnchorSideLeft.Control = Panel1
@@ -27,7 +27,7 @@ object frmMain: TfrmMain
       AnchorSideBottom.Control = bbNewGraf
       AnchorSideBottom.Side = asrBottom
       Left = 1
-      Height = 42
+      Height = 48
       Top = 1
       Width = 175
       Anchors = [akTop, akLeft, akBottom]
@@ -174,7 +174,7 @@ object frmMain: TfrmMain
       AnchorSideBottom.Control = bbNewGraf
       AnchorSideBottom.Side = asrBottom
       Left = 176
-      Height = 42
+      Height = 48
       Top = 1
       Width = 153
       Anchors = [akTop, akLeft, akBottom]
@@ -319,9 +319,9 @@ object frmMain: TfrmMain
       AnchorSideRight.Control = Panel1
       AnchorSideRight.Side = asrBottom
       Left = 665
-      Height = 42
+      Height = 48
       Top = 1
-      Width = 120
+      Width = 126
       Anchors = [akTop, akRight]
       AutoSize = True
       Caption = 'Новий граф'
@@ -467,7 +467,7 @@ object frmMain: TfrmMain
       AnchorSideBottom.Control = sbAddNode
       AnchorSideBottom.Side = asrBottom
       Left = 329
-      Height = 42
+      Height = 48
       Top = 1
       Width = 159
       Anchors = [akTop, akLeft, akBottom]
@@ -614,7 +614,7 @@ object frmMain: TfrmMain
       AnchorSideBottom.Control = sbAddNode
       AnchorSideBottom.Side = asrBottom
       Left = 488
-      Height = 42
+      Height = 48
       Top = 1
       Width = 176
       Anchors = [akTop, akLeft, akBottom]
@@ -758,17 +758,17 @@ object frmMain: TfrmMain
   object Memo1: TMemo
     Left = 0
     Height = 90
-    Top = 288
-    Width = 786
+    Top = 295
+    Width = 792
     Align = alBottom
     ScrollBars = ssVertical
     TabOrder = 1
   end
   object Image1: TImage
     Left = 0
-    Height = 244
-    Top = 44
-    Width = 786
+    Height = 245
+    Top = 50
+    Width = 792
     Align = alClient
     OnMouseDown = Image1MouseDown
     OnMouseMove = Image1MouseMove
