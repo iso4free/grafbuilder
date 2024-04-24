@@ -883,6 +883,9 @@ begin
         Canvas.Pen.Style := psSolid;
         Canvas.MoveTo(X[i], Y[i] + CNODE_RADIUS * 2);
         Canvas.LineTo(X[j], Y[j] + CNODE_RADIUS * 2);
+        draw_graph_node(X[J], MAS_Y[J], J, clLime);
+        Application.ProcessMessages;
+        Sleep(200);
       end
       else
       if (A[i, j] = 2) then
@@ -891,18 +894,13 @@ begin
         Canvas.Pen.Style := psDot;
         Canvas.MoveTo(X[i], Y[i] + CNODE_RADIUS * 2);
         Canvas.LineTo(X[j], Y[j] + CNODE_RADIUS * 2);
+        draw_graph_node(X[J], MAS_Y[J], J, clYellow);
+        Application.ProcessMessages;
+        Sleep(200);
       end;
-      Application.ProcessMessages;
-      Sleep(100);
     end;
   Canvas.Pen.Width := 1;
   Canvas.Pen.Style := psSolid;
-  for i := 1 to NodesCount do
-  begin
-    draw_graph_node(MAS_X[i], MAS_Y[i], i);
-    Application.ProcessMessages;
-    Sleep(100);
-  end;
   set_edges_direction(A, clLime);
 end;
 
