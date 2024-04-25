@@ -8,10 +8,9 @@
       <Unit>
         <Filename Value="grafbuilder.lpr"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="1"/>
+        <EditorIndex Value="-1"/>
         <CursorPos Y="18"/>
         <UsageCount Value="63"/>
-        <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="umain.pas"/>
@@ -21,7 +20,7 @@
         <ResourceBaseClass Value="Form"/>
         <IsVisibleTab Value="True"/>
         <TopLine Value="874"/>
-        <CursorPos X="36" Y="904"/>
+        <CursorPos X="42" Y="897"/>
         <UsageCount Value="63"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -49,7 +48,11 @@
         <UsageCount Value="9"/>
       </Unit>
     </Units>
-    <JumpHistory HistoryIndex="28">
+    <JumpHistory HistoryIndex="29">
+      <Position>
+        <Filename Value="umain.pas"/>
+        <Caret Line="290" Column="21" TopLine="270"/>
+      </Position>
       <Position>
         <Filename Value="umain.pas"/>
         <Caret Line="90" Column="15" TopLine="81"/>
@@ -156,15 +159,15 @@
       </Position>
       <Position>
         <Filename Value="umain.pas"/>
+        <Caret Line="227" Column="3" TopLine="223"/>
+      </Position>
+      <Position>
+        <Filename Value="umain.pas"/>
+        <Caret Line="161" Column="3" TopLine="193"/>
+      </Position>
+      <Position>
+        <Filename Value="umain.pas"/>
         <Caret Line="105" Column="15" TopLine="90"/>
-      </Position>
-      <Position>
-        <Filename Value="umain.pas"/>
-        <Caret Line="886" Column="9" TopLine="877"/>
-      </Position>
-      <Position>
-        <Filename Value="umain.pas"/>
-        <Caret Line="105" Column="18" TopLine="83"/>
       </Position>
     </JumpHistory>
     <RunParams>

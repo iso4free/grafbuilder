@@ -901,7 +901,6 @@ begin
     end;
   Canvas.Pen.Width := 1;
   Canvas.Pen.Style := psSolid;
-  draw_graph_node(X[j], MAS_Y[j], j, clYellow);
   set_edges_direction(A, clLime);
 end;
 
