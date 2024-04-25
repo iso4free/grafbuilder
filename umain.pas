@@ -104,6 +104,8 @@ type
     //пошук в ширину
     procedure search_tree_bild(A: TMatrix; X: TVECT; Y: TVECT;
       V: TVECT; N: integer);
+    //перевірка зв'язності графа
+    procedure CheckGraph;
   end;
 
 var
@@ -156,7 +158,7 @@ end;
 
 procedure TfrmMain.bbWidthClick(Sender: TObject);
 var
-  i, j, m, z, l1, l2, k, kk: integer;
+  i, j, m, z, l1, l2, k, ii, kk: integer;
 begin
   if NodesCount = 0 then
   begin
@@ -171,10 +173,10 @@ begin
   isConnectivity := True;
   rezstr := '';
   connectivity_components := '';
-  for Glob_Counter := 1 to NodesCount do
+  for ii := 1 to NodesCount do
   begin
-    V[Glob_Counter] := 0;
-    V0[Glob_Counter] := 0;
+    V[ii] := 0;
+    V0[ii] := 0;
   end;
   A1 := Edges;
   m := 1;
@@ -193,8 +195,8 @@ begin
         if (A1[i, j] = 1) then
         begin
           k := 0;
-          for Glob_Counter := 1 to m do
-            if (V0[Glob_Counter] = j) then
+          for ii := 1 to m do
+            if (V0[ii] = j) then
             begin
               k := k + 1;
               if (A1[j, i] <> 2) and (A1[j, i] <> 3) then
@@ -523,6 +525,7 @@ procedure TfrmMain.ClearImage;
 begin
   Image1.Canvas.Brush.Color := clWhite;
   Image1.Canvas.FillRect(Rect(0, 0, Image1.Width, Image1.Height));
+  Memo1.Lines.Add(IntToStr(Image1.Width)+'x'+IntToStr(Image1.Height));
 end;
 
 procedure TfrmMain.draw_graph_node(X, Y, N: integer; nodecolor: TColor);
@@ -903,6 +906,80 @@ begin
   Canvas.Pen.Style := psSolid;
   draw_graph_node(X[j], MAS_Y[j], j, clYellow);
   set_edges_direction(A, clLime);
+end;
+
+procedure TfrmMain.CheckGraph;
+var
+  i,j : Integer;
+  stack : TVECT;
+  counter : Integer;//лічильник елементів стеку
+  currentNode : Integer;
+
+  function InStack(num : Integer) : Boolean;
+  var
+    i : Integer;
+  begin
+    result :=False;
+    if counter>1 then begin
+    for i:=1 to counter do begin
+     if stack[i]=num then begin
+       Result:=True;
+       Break;
+     end;
+    end;
+   end;
+  end;
+
+  procedure PushInStack(num : Integer);
+  begin
+   Inc(counter);
+   stack[counter]:=num;
+  end;
+
+  function HasConnect(n1,n2 : Integer) : Boolean;
+  //перевіряє чи є зв'язок між вказаними вершинами
+  var i, node : Integer;
+  begin
+   result:=False;
+   for i:=1 to counter do begin
+    node := stack[i];
+    if (node<>n1) and (node<>n2) then
+      if (edges[node, n1]=1) or (edges[node,n2]=1)
+         or (edges[n1,node]=1) or (edges[n2,node]=1) then begin
+      Result:=True;
+      Exit;
+    end;
+   end;
+  end;
+
+begin
+  if NodesCount = 0 then
+  begin
+    Memo1.Lines.Add('Граф немає вершин!');
+    Memo1.CaretPos := Point(0, Memo1.Lines.Count - 1);
+    Exit;
+  end;
+  //todo: перевірка на зв'язність
+  {
+  Від першої вершини починаємо пошук з додаванням в стек пройдених вершин
+  Якщо вершина вже є в стекові, пропускаємо
+  Якщо немає, шукаємо чи є до неї шлях з першої вершини
+  }
+  isConnected:=True;//по замовчуванню вважаємо граф зв'язним
+  counter:=0;
+  for i:=1 to CMAS_MAXSIZE do stack[i]:=0;
+  //першу вершину заносимо в стек - від неї буде йти відлік
+  PushStack(1);
+  for i:=1 to NodesCount do begin
+   if not InStack(currentNode) then begin
+    if NodeHasEdges(currentNode) then begin
+    //todo: перевіряємо чи має вершина прямі зв'язки або через інші вершини
+
+        if HasConnect(currentNode);
+      end;
+    end;
+   end;
+  end;
 end;
 
 end.
