@@ -58,7 +58,7 @@
         <UsageCount Value="10"/>
       </Unit>
     </Units>
-    <JumpHistory HistoryIndex="29">
+    <JumpHistory HistoryIndex="28">
       <Position>
         <Filename Value="umain.pas"/>
         <Caret Line="70" Column="15" TopLine="54"/>
@@ -162,10 +162,6 @@
       <Position>
         <Filename Value="umain.pas"/>
         <Caret Line="429" Column="3" TopLine="427"/>
-      </Position>
-      <Position>
-        <Filename Value="umain.pas"/>
-        <Caret Line="155" Column="3" TopLine="185"/>
       </Position>
       <Position>
         <Filename Value="umain.pas"/>
