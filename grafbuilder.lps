@@ -10,7 +10,7 @@
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="1"/>
         <CursorPos Y="18"/>
-        <UsageCount Value="93"/>
+        <UsageCount Value="94"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
@@ -20,9 +20,9 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <IsVisibleTab Value="True"/>
-        <TopLine Value="230"/>
+        <TopLine Value="246"/>
         <CursorPos Y="250"/>
-        <UsageCount Value="93"/>
+        <UsageCount Value="94"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
       </Unit>
@@ -57,14 +57,10 @@
         <UsageCount Value="8"/>
       </Unit>
     </Units>
-    <JumpHistory HistoryIndex="29">
+    <JumpHistory HistoryIndex="28">
       <Position>
         <Filename Value="umain.pas"/>
         <Caret Line="162" Column="3" TopLine="158"/>
-      </Position>
-      <Position>
-        <Filename Value="umain.pas"/>
-        <Caret Line="229" Column="3" TopLine="252"/>
       </Position>
       <Position>
         <Filename Value="umain.pas"/>
@@ -73,10 +69,6 @@
       <Position>
         <Filename Value="umain.pas"/>
         <Caret Line="700" TopLine="690"/>
-      </Position>
-      <Position>
-        <Filename Value="umain.pas"/>
-        <Caret Line="189" Column="6" TopLine="197"/>
       </Position>
       <Position>
         <Filename Value="umain.pas"/>
@@ -105,10 +97,6 @@
       <Position>
         <Filename Value="umain.pas"/>
         <Caret Line="162" Column="3" TopLine="158"/>
-      </Position>
-      <Position>
-        <Filename Value="umain.pas"/>
-        <Caret Line="256" Column="11" TopLine="264"/>
       </Position>
       <Position>
         <Filename Value="umain.pas"/>
@@ -172,11 +160,19 @@
       </Position>
       <Position>
         <Filename Value="umain.pas"/>
-        <Caret Line="68" Column="15" TopLine="72"/>
+        <Caret Line="537" TopLine="522"/>
       </Position>
       <Position>
         <Filename Value="umain.pas"/>
-        <Caret Line="537" TopLine="522"/>
+        <Caret Line="250" Column="5" TopLine="218"/>
+      </Position>
+      <Position>
+        <Filename Value="umain.pas"/>
+        <Caret Line="153" Column="3" TopLine="151"/>
+      </Position>
+      <Position>
+        <Filename Value="umain.pas"/>
+        <Caret Line="68" Column="15" TopLine="52"/>
       </Position>
     </JumpHistory>
     <RunParams>
