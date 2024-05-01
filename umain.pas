@@ -162,7 +162,7 @@ begin
   if NodesCount = 0 then
   begin
     Memo1.Lines.Add(
-      'Граф немає вершин, пошук в глибину неможливий!');
+      'Граф немає вершин, пошук в ширину неможливий!');
     Memo1.CaretPos := Point(0, Memo1.Lines.Count - 1);
     Exit;
   end;
@@ -172,10 +172,10 @@ begin
   isConnectivity := True;
   rezstr := '';
   connectivity_components := '';
-  for ii := 1 to NodesCount do
+  for i := 1 to NodesCount do
   begin
-    V[ii] := 0;
-    V0[ii] := 0;
+    V[i] := 0;
+    V0[i] := 0;
   end;
   for i:=1 to CMAS_MAXSIZE do
    for j:=1 to CMAS_MAXSIZE do A1[i,j] := Edges[i,j];
@@ -194,6 +194,9 @@ begin
       for j := 1 to NodesCount do
         if (A1[i, j] = 1) then
         begin
+          draw_graph_node(mas_x[j],mas_y[j],j,clLime);
+          Application.ProcessMessages;
+          Sleep(300);
           k := 0;
           for ii := 1 to m do
             if (V0[ii] = j) then
@@ -219,6 +222,14 @@ begin
     if (l1 = 0) then
       break;
   end;
+  //перевірка на зв'язність - якщо усі вершини попали в чергу, граф зв'язний
+  for i:=1 to NodesCount do begin
+   if v0[i]=0 then isConnectivity:=False;
+  end;
+  if isConnectivity then
+   Image1.Canvas.TextOut(800,50,'Граф зв''язний')
+  else
+   Image1.Canvas.TextOut(800,50,'Граф не зв''язний');
   search_tree_bild(A1, MAS_X, MAS_Y, V, NodesCount);
 end;
 
@@ -278,11 +289,11 @@ begin
     end;
   end;
   search_tree_bild(A1, MAS_X, MAS_Y, V, NodesCount);
+  Image1.Canvas.Pen.Color:=clBlack;
   if isConnectivity then
-    Memo1.Lines.Add('Граф зв''язний')
+   Image1.Canvas.TextOut(800,50,'Граф зв''язний')
   else
-    Memo1.Lines.Add('Граф не зв''язний');
-  Memo1.CaretPos := Point(0, Memo1.Lines.Count - 1);
+   Image1.Canvas.TextOut(800,50,'Граф не зв''язний');
 end;
 
 procedure TfrmMain.Image1MouseDown(Sender: TObject; Button: TMouseButton;
@@ -511,12 +522,16 @@ begin
     mas_y[i] := 0;
     mas_n[i] := 0;
     V[i] := 0;
+    V0[i] :=0;
+    V1[i] := 0;
+    V2[i] := 0;
     for j := 1 to CMAS_MAXSIZE do
     begin
       edges[i, j] := 0;
       A1[i, j] := 0;
     end;
   end;
+  glob_counter:=0;
   depth := False;
   sbAddNode.Down := True;
   Memo1.Clear;
@@ -534,9 +549,7 @@ begin
   begin
     Canvas.Pen.Width := 1;
     Canvas.Pen.Color := clBlack;
-    if (depth and (N = 1)) then Canvas.Brush.Color := clYellow
-    else
-      Canvas.Brush.Color := nodecolor;
+    Canvas.Brush.Color := nodecolor;
     Canvas.Ellipse(X - 12, Y - 12, X + 12, Y + 12);
     Canvas.TextOut(X - (Length(IntToStr(N)) * 3), Y - 5, IntToStr(N));
   end;
@@ -691,15 +704,18 @@ end;
 
 procedure TfrmMain.depth_search(k: integer; n: integer);
 var
-  ii, j, kk: integer;
+  i, j, kk: integer;
 begin
   for j := 1 to n do
   begin
     if (A1[k, j] = 1) then
     begin
+      draw_graph_node(mas_x[k],mas_y[k],k,clNavy);
+      Application.ProcessMessages;
+      Sleep(300);
       kk := 0;
-      for ii := 1 to n do
-        if (V[ii] = j) then
+      for i := 1 to n do
+        if (V[i] = j) then
         begin
           kk := kk + 1;
           if (A1[j, k] <> 2) and (A1[j, k] <> 3) then
@@ -886,9 +902,6 @@ begin
         Canvas.Pen.Style := psSolid;
         Canvas.MoveTo(X[i], Y[i] + CNODE_RADIUS * 2);
         Canvas.LineTo(X[j], Y[j] + CNODE_RADIUS * 2);
-        draw_graph_node(X[i], Y[i], i, clLime);
-        Application.ProcessMessages;
-        Sleep(200);
       end
       else
       if (A[i, j] = 2) then
@@ -897,14 +910,10 @@ begin
         Canvas.Pen.Style := psDot;
         Canvas.MoveTo(X[i], Y[i] + CNODE_RADIUS * 2);
         Canvas.LineTo(X[j], Y[j] + CNODE_RADIUS * 2);
-        draw_graph_node(X[i], Y[i], i, clYellow);
-        Application.ProcessMessages;
-        Sleep(200);
       end;
     end;
   Canvas.Pen.Width := 1;
   Canvas.Pen.Style := psSolid;
-  draw_graph_node(X[j],Y[j], j, clYellow);
   set_edges_direction(A, clLime);
 end;
 

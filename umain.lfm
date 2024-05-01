@@ -1,11 +1,11 @@
 object frmMain: TfrmMain
   Left = 201
-  Height = 591
-  Top = 153
-  Width = 931
+  Height = 600
+  Top = 72
+  Width = 928
   Caption = 'Graph builder'
-  ClientHeight = 591
-  ClientWidth = 931
+  ClientHeight = 600
+  ClientWidth = 928
   DefaultMonitor = dmPrimary
   Menu = MainMenu1
   OnCreate = FormCreate
@@ -13,13 +13,13 @@ object frmMain: TfrmMain
   LCLVersion = '3.2.0.0'
   object Panel1: TPanel
     Left = 0
-    Height = 44
+    Height = 47
     Top = 0
-    Width = 931
+    Width = 928
     Align = alTop
     AutoSize = True
-    ClientHeight = 44
-    ClientWidth = 931
+    ClientHeight = 47
+    ClientWidth = 928
     TabOrder = 0
     object sbAddNode: TSpeedButton
       AnchorSideLeft.Control = Panel1
@@ -27,8 +27,8 @@ object frmMain: TfrmMain
       AnchorSideBottom.Control = bbNewGraf
       AnchorSideBottom.Side = asrBottom
       Left = 1
-      Height = 42
-      Top = 1
+      Height = 46
+      Top = 0
       Width = 175
       Anchors = [akTop, akLeft, akBottom]
       Caption = 'Додати вершину'
@@ -174,8 +174,8 @@ object frmMain: TfrmMain
       AnchorSideBottom.Control = bbNewGraf
       AnchorSideBottom.Side = asrBottom
       Left = 176
-      Height = 42
-      Top = 1
+      Height = 46
+      Top = 0
       Width = 153
       Anchors = [akTop, akLeft, akBottom]
       Caption = 'Додати ребро'
@@ -318,10 +318,10 @@ object frmMain: TfrmMain
       AnchorSideTop.Side = asrCenter
       AnchorSideRight.Control = Panel1
       AnchorSideRight.Side = asrBottom
-      Left = 810
-      Height = 42
-      Top = 1
-      Width = 120
+      Left = 803
+      Height = 46
+      Top = 0
+      Width = 124
       Anchors = [akTop, akRight]
       AutoSize = True
       Caption = 'Новий граф'
@@ -467,8 +467,8 @@ object frmMain: TfrmMain
       AnchorSideBottom.Control = sbAddNode
       AnchorSideBottom.Side = asrBottom
       Left = 329
-      Height = 42
-      Top = 1
+      Height = 46
+      Top = 0
       Width = 159
       Anchors = [akTop, akLeft, akBottom]
       Caption = 'Обхід в глибину'
@@ -614,8 +614,8 @@ object frmMain: TfrmMain
       AnchorSideBottom.Control = sbAddNode
       AnchorSideBottom.Side = asrBottom
       Left = 488
-      Height = 42
-      Top = 1
+      Height = 46
+      Top = 0
       Width = 176
       Anchors = [akTop, akLeft, akBottom]
       Caption = 'Обхід в ширину'
@@ -758,17 +758,17 @@ object frmMain: TfrmMain
   object Memo1: TMemo
     Left = 0
     Height = 90
-    Top = 501
-    Width = 931
+    Top = 510
+    Width = 928
     Align = alBottom
     ScrollBars = ssVertical
     TabOrder = 1
   end
   object Image1: TImage
     Left = 0
-    Height = 457
-    Top = 44
-    Width = 931
+    Height = 463
+    Top = 47
+    Width = 928
     Align = alClient
     OnMouseDown = Image1MouseDown
     OnMouseMove = Image1MouseMove
