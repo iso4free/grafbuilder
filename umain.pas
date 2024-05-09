@@ -10,10 +10,14 @@ uses
 
 const
   //максимальна розмірність масиву координат
-  CMAS_MAXSIZE = 10;
+  CMAS_MAXSIZE = 1000;
   //радіус вершини, в межах координат якого не можна додати нової вершини
   CNODE_RADIUS = 20;
   H = 0.01;
+  infinity = MaxInt div 2;
+  white = 0;
+  black = 1;
+  notfound = 0;
 
 type
   //масив чисел
@@ -23,6 +27,8 @@ type
   TMAS1 = array[1..2, 1..2] of real;
   TVECT1 = array[1..2] of real;
   TVECT2 = array[1..4] of TPoint;
+  TColors = array[1..CMAS_MAXSIZE] of byte;
+  TPath = array[0..CMAS_MAXSIZE] of integer;
 
 
   { TfrmMain }
@@ -31,6 +37,7 @@ type
     bbNewGraf: TBitBtn;
     bbWidth: TBitBtn;
     bbDepth: TBitBtn;
+    bbDejkstra: TBitBtn;
     Image1: TImage;
     MainMenu1: TMainMenu;
     Memo1: TMemo;
@@ -47,6 +54,7 @@ type
     Panel1: TPanel;
     sbAddNode: TSpeedButton;
     sbAddEdge: TSpeedButton;
+    procedure bbDejkstraClick(Sender: TObject);
     procedure BbNewGraph(Sender: TObject);
     procedure bbWidthClick(Sender: TObject);
     procedure bbDepthClick(Sender: TObject);
@@ -104,7 +112,9 @@ type
     //пошук в ширину
     procedure search_tree_bild(A: TMatrix; X: TVECT; Y: TVECT;
       V: TVECT; N: integer);
-    procedure checkSolid;
+    procedure dijkstra(matrix: TMatrix; n, start: integer; var path: TPath);
+    procedure Path_short(matrix: TMatrix; N, start: integer; var Len_Path: Tpath);
+    procedure DrawShortestPath;
   end;
 
 var
@@ -133,6 +143,9 @@ var
   glob_counter: integer;
   rezstr, connectivity_components: string;
   isConnectivity: boolean;
+  path: TPath;
+  //режим пошуку шляху
+  searchMode: boolean;
 
 
 implementation
@@ -153,6 +166,21 @@ begin
   //Підготовка програми до роботи - ініціалізація даних та очистка зображення
   PrepareData;
   ClearImage;
+end;
+
+procedure TfrmMain.bbDejkstraClick(Sender: TObject);
+begin
+  if NodesCount = 0 then
+  begin
+    Memo1.Lines.Add(
+      'Граф немає вершин, пошук шляху неможливий!');
+    Memo1.CaretPos := Point(0, Memo1.Lines.Count - 1);
+    Exit;
+  end;
+  searchMode := True;
+  startnode := 1;
+  endnode := NodesCount;
+  dijkstra(edges, NodesCount, startnode, path);
 end;
 
 procedure TfrmMain.bbWidthClick(Sender: TObject);
@@ -177,12 +205,12 @@ begin
     V[i] := 0;
     V0[i] := 0;
   end;
-  for i:=1 to CMAS_MAXSIZE do
-   for j:=1 to CMAS_MAXSIZE do A1[i,j] := Edges[i,j];
+  for i := 1 to CMAS_MAXSIZE do
+    for j := 1 to CMAS_MAXSIZE do A1[i, j] := Edges[i, j];
   m := 1;
   l1 := m;
   V0[m] := 1;
-  for i:=1 to CMAS_MAXSIZE do V1[i] := V0[i];
+  for i := 1 to CMAS_MAXSIZE do V1[i] := V0[i];
   V[1] := 0;
   kk := 1;
   while (True) do
@@ -194,7 +222,7 @@ begin
       for j := 1 to NodesCount do
         if (A1[i, j] = 1) then
         begin
-          draw_graph_node(mas_x[j],mas_y[j],j,clLime);
+          draw_graph_node(mas_x[j], mas_y[j], j, clLime);
           Application.ProcessMessages;
           Sleep(300);
           k := 0;
@@ -217,19 +245,20 @@ begin
         end;
     end;
     l1 := l2;
-    for i:=1 to CMAS_MAXSIZE do V1[i] := V2[i];
+    for i := 1 to CMAS_MAXSIZE do V1[i] := V2[i];
     kk := kk + 1;
     if (l1 = 0) then
       break;
   end;
   //перевірка на зв'язність - якщо усі вершини попали в чергу, граф зв'язний
-  for i:=1 to NodesCount do begin
-   if v0[i]=0 then isConnectivity:=False;
+  for i := 1 to NodesCount do
+  begin
+    if v0[i] = 0 then isConnectivity := False;
   end;
   if isConnectivity then
-   Image1.Canvas.TextOut(800,50,'Граф зв''язний')
+    Image1.Canvas.TextOut(800, 50, 'Граф зв''язний')
   else
-   Image1.Canvas.TextOut(800,50,'Граф не зв''язний');
+    Image1.Canvas.TextOut(800, 50, 'Граф не зв''язний');
   search_tree_bild(A1, MAS_X, MAS_Y, V, NodesCount);
 end;
 
@@ -254,8 +283,8 @@ begin
   //вважаємо, що граф зв'язний по замовчуванню
   for i := 1 to CMAS_MAXSIZE do
     V[i] := 0;
-  for i:= 1 to CMAS_MAXSIZE do
-      for j:= 1 to CMAS_MAXSIZE do A1[i,j] := Edges[i,j];
+  for i := 1 to CMAS_MAXSIZE do
+    for j := 1 to CMAS_MAXSIZE do A1[i, j] := Edges[i, j];
   while (glob_counter < NodesCount) do
   begin
     if (glob_counter = 0) then
@@ -289,11 +318,11 @@ begin
     end;
   end;
   search_tree_bild(A1, MAS_X, MAS_Y, V, NodesCount);
-  Image1.Canvas.Pen.Color:=clBlack;
+  Image1.Canvas.Pen.Color := clBlack;
   if isConnectivity then
-   Image1.Canvas.TextOut(800,50,'Граф зв''язний')
+    Image1.Canvas.TextOut(800, 50, 'Граф зв''язний')
   else
-   Image1.Canvas.TextOut(800,50,'Граф не зв''язний');
+    Image1.Canvas.TextOut(800, 50, 'Граф не зв''язний');
 end;
 
 procedure TfrmMain.Image1MouseDown(Sender: TObject; Button: TMouseButton;
@@ -302,6 +331,30 @@ var
   p: integer; //№ вершини
 begin
   if depth then Exit;
+  //режим пошуку шляху - ліва кнопка початкова вершина, права кінцева
+  if searchMode then
+  begin
+    if (ssLeft in Shift) then
+    begin
+      p := FindNodeByXY(x, y);
+      //якщо не знайдено вершини, по замовчуванню обираємо першу
+      if p = -1 then startnode := 1
+      else
+        startnode := p;
+    end;
+    if (ssRight in Shift) then
+    begin
+      p := FindNodeByXY(x, y);
+      //якщо не знайдено вершини, по замовчуванню обираємо останню
+      if p = -1 then endnode := NodesCount
+      else
+        endnode := p;
+    end;
+    //todo: намалюваши шлях між обраними нодами або вивести повідомлення
+    //якщо шлях відсутній
+
+  end
+  else
   //режим додавання вершин
   if (sbAddNode.Down = True) then
   begin
@@ -316,7 +369,9 @@ begin
         MAS_X[NodesCount] := X;
         MAS_Y[NodesCount] := Y;
         MAS_N[NodesCount] := NodesCount;
-
+        if NodesCount = 1 then startnode := 1
+        else
+          endnode := NodesCount;
         Memo1.Lines.Add(
           'Додано вершину ' + IntToStr(NodesCount));
         Memo1.CaretPos := Point(0, Memo1.Lines.Count - 1);
@@ -325,6 +380,7 @@ begin
       else
       begin
         //такі координати вже зайняті - вершину не додаємо а робимо її вибраною
+
         Memo1.Lines.Add('Така вершина вже є!');
         Memo1.CaretPos := Point(0, Memo1.Lines.Count - 1);
       end;
@@ -346,7 +402,8 @@ begin
           RemoveNode(p);
       end;
     end;
-  end;
+  end
+  else
   //режим додавання ребер
   if (sbAddEdge.Down = True) then
   begin
@@ -392,34 +449,41 @@ var
 begin
   if depth then Exit;
   //не режим додавння ребер - нічого не робимо
-  if sbAddNode.Down then Exit;
-  endnode := FindNodeByXY(x, y);
-  if (endnode = -1) or (endnode = startnode) then
+  if not searchMode then
   begin
-    Memo1.Lines.Add('Не обрано кінцеву вершину!');
-    Memo1.CaretPos := Point(0, Memo1.Lines.Count - 1);
-    Exit;
-  end;
-  //шукаємо № ребра
-  newedge := FindEdgeByNodes(startnode, endnode);
+    if sbAddNode.Down then Exit;
+    endnode := FindNodeByXY(x, y);
+    if (endnode = -1) or (endnode = startnode) then
+    begin
+      Memo1.Lines.Add('Не обрано кінцеву вершину!');
+      Memo1.CaretPos := Point(0, Memo1.Lines.Count - 1);
+      Exit;
+    end;
+    //шукаємо № ребра
+    newedge := FindEdgeByNodes(startnode, endnode);
 
-  case deletemode of
-    False: begin
-      if (newedge = -1) then
-      begin
-        EdgesCount := EdgesCount + 1;
-        edges[startnode, endnode] := 1;
-        edges[endnode, startnode] := 1;
+    case deletemode of
+      False: begin
+        if (newedge = -1) then
+        begin
+          EdgesCount := EdgesCount + 1;
+          edges[startnode, endnode] := 1;
+          edges[endnode, startnode] := 1;
+        end;
+      end;
+      True: begin
+        if newedge <> -1 then RemoveEdge(newedge);
       end;
     end;
-    True: begin
-      if newedge <> -1 then RemoveEdge(newedge);
-    end;
   end;
-
   //оновлюємо зображення графа
   ClearImage;
   DrawGraph;
+  if searchMode then
+  begin
+    Path_short(edges, NodesCount, startnode, path);
+    DrawShortestPath;
+  end;
 end;
 
 procedure TfrmMain.MenuItem2Click(Sender: TObject);
@@ -487,6 +551,8 @@ begin
         end;
     CloseFile(f);
   end;
+  startnode := 1;
+  endnode := NodesCount;
   DrawGraph;
 end;
 
@@ -522,7 +588,7 @@ begin
     mas_y[i] := 0;
     mas_n[i] := 0;
     V[i] := 0;
-    V0[i] :=0;
+    V0[i] := 0;
     V1[i] := 0;
     V2[i] := 0;
     for j := 1 to CMAS_MAXSIZE do
@@ -531,8 +597,9 @@ begin
       A1[i, j] := 0;
     end;
   end;
-  glob_counter:=0;
+  glob_counter := 0;
   depth := False;
+  searchMode := False;
   sbAddNode.Down := True;
   Memo1.Clear;
 end;
@@ -577,6 +644,8 @@ var
 begin
   if NodesCount = 0 then Exit;
   for i := 1 to NodesCount do draw_graph_node(mas_x[i], mas_y[i], mas_n[i]);
+  draw_graph_node(mas_x[startnode], mas_y[startnode], startnode, clRed);
+  draw_graph_node(mas_x[endnode], mas_y[endnode], endnode, clRed);
   if EdgesCount = 0 then Exit;
   for i := 1 to EdgesCount do draw_graph_edge();
   Invalidate;
@@ -710,7 +779,7 @@ begin
   begin
     if (A1[k, j] = 1) then
     begin
-      draw_graph_node(mas_x[k],mas_y[k],k,clNavy);
+      draw_graph_node(mas_x[k], mas_y[k], k, clBlue);
       Application.ProcessMessages;
       Sleep(300);
       kk := 0;
@@ -814,7 +883,9 @@ begin
         Image1.Canvas.Brush.Color := EdgeColor;
         Image1.Canvas.Polygon(P);
       end;
-
+      draw_graph_node(mas_x[i], mas_y[i], i, clYellow);
+      Application.ProcessMessages;
+      Sleep(300);
     end;
 end;
 
@@ -892,39 +963,130 @@ procedure TfrmMain.search_tree_bild(A: TMatrix; X: TVECT; Y: TVECT;
 var
   i, j: integer;
 begin
-  Canvas.Brush.Color := clWhite;
+  Image1.Canvas.Brush.Color := clWhite;
   for i := 1 to N do
+  begin
     for j := 1 to N do
     begin
       if (A[i, j] = 3) then
       begin
-        Canvas.Pen.Width := 3;
-        Canvas.Pen.Style := psSolid;
-        Canvas.MoveTo(X[i], Y[i] + CNODE_RADIUS * 2);
-        Canvas.LineTo(X[j], Y[j] + CNODE_RADIUS * 2);
+        Image1.Canvas.Pen.Width := 3;
+        Image1.Canvas.Pen.Style := psSolid;
+        Image1.Canvas.MoveTo(X[i], Y[i]);
+        Image1.Canvas.LineTo(X[j], Y[j]);
       end
       else
       if (A[i, j] = 2) then
       begin
-        Canvas.Pen.Width := 1;
-        Canvas.Pen.Style := psDot;
-        Canvas.MoveTo(X[i], Y[i] + CNODE_RADIUS * 2);
-        Canvas.LineTo(X[j], Y[j] + CNODE_RADIUS * 2);
+        Image1.Canvas.Pen.Width := 1;
+        Image1.Canvas.Pen.Style := psDot;
+        Image1.Canvas.MoveTo(X[i], Y[i]);
+        Image1.Canvas.LineTo(X[j], Y[j]);
       end;
     end;
-  Canvas.Pen.Width := 1;
-  Canvas.Pen.Style := psSolid;
+
+  end;
+  Image1.Canvas.Pen.Width := 1;
+  Image1.Canvas.Pen.Style := psSolid;
   set_edges_direction(A, clLime);
 end;
 
-procedure TfrmMain.checkSolid;
-type
-  TQueue = set of Byte;
-
-var queue : TQueue;
-
+procedure TfrmMain.dijkstra(matrix: TMatrix; n, start: integer; var path: TPath);
+var
+  i, currentNode, NextNode: integer;
+  colorArr: TColors;
 begin
+{Початкові значення: вершини білі,
+мінімальна відстань до них нескінченна}
+  for i := 1 to n do
+  begin
+    path[i] := infinity;
+    colorArr[i] := white;
+  end;
+  {Починаємо алгоритм з вершини start}
+  path[start] := 0;
+  currentNode := start;
+  repeat
+    {Поточна вершина стає чорною}
+    colorArr[currentNode] := black;
+    NextNode := notfound;
+    for i := 1 to n do
+      {перебираємо суміжні з поточною білі вершини}
+      if (matrix[currentNode, i] <> 0) and (colorArr[i] = white) then
+      begin
+        {поновлюємо довжину мінімального шляху до суміжної вершини}
+        if matrix[currentNode, i] + path[currentNode] < path[i] then
+          path[i] := matrix[currentNode, i] + path[currentNode];
+        {шукаємо серед «сірих» вершину з мінімальною на даний момент відстанню}
+        if (NextNode = notfound) or (path[i] < path[NextNode]) then NextNode := i;
+      end;
+    currentNode := NextNode;
+    {процес завершується, коли не було знайдено  жодної «сірої» вершини}
+  until (currentNode = notfound);
+end;
 
+procedure TfrmMain.Path_short(matrix: TMatrix; N, start: integer; var Len_Path: Tpath);
+var
+  queue: TPath;
+  head, tail, i, NextNode: integer;
+  status: array[1..CMAS_MAXSIZE] of boolean;
+begin
+  {Встановлення початкових значень}
+  fillchar(status, sizeof(status), 0);
+  for i := 1 to N do
+    Len_Path[i] := infinity;
+  {Занесення у чергу та список відвіданих вершин
+  стартової вершини}
+  queue[0] := start;
+  head := 0;
+  tail := 1;
+  Len_Path[start] := 0;
+  status[start] := True;
+  while head < tail do
+  begin
+  {Вибір з голови черги першої вершини
+  для її розгляду}
+    NextNode := queue[head];
+    head := (head + 1) mod N;
+    {Вершина забрана з черги}
+    status[NextNode] := False;
+    {Перевірка всіх суміжних з розглядуваною вершин}
+    for i := 1 to N do
+      if (Len_Path[NextNode] + matrix[NextNode, i] < Len_Path[i]) then
+      begin
+        {До вершини знайдено коротший шлях}
+        Len_Path[i] := Len_Path[NextNode] + matrix[NextNode, i];
+        if not status[i] then
+        begin
+    {Вершина додається в чергу,
+    якщо вона там не знаходиться}
+          queue[tail] := i;
+          tail := (tail + 1) mod N;
+          status[i] := True;
+        end;
+      end;
+  end;
+end;
+
+procedure TfrmMain.DrawShortestPath;
+begin
+  if startnode = endnode then
+  begin
+    Image1.Canvas.TextOut(800, 50,
+      'Початкова та кінцева вершини співпадають!');
+  end
+  else if path[endnode] = infinity then
+  begin
+    Image1.Canvas.TextOut(800, 50, 'Між вершинами немає шляху!');
+  end
+  else
+  begin
+    //todo: намалювати лініями товщиною 3 пікселя червоного кольору найкоротший шлях
+    Image1.Canvas.Pen.Width := 3;
+    Image1.Canvas.Pen.Style := psSolid;
+    Image1.Canvas.MoveTo(mas_x[startnode], mas_y[startnode] + CNODE_RADIUS * 2);
+    Image1.Canvas.LineTo(mas_X[endnode], mas_y[endnode] + CNODE_RADIUS * 2);
+  end;
 end;
 
 end.
