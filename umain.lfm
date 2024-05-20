@@ -1,7 +1,7 @@
 object frmMain: TfrmMain
   Left = 286
   Height = 600
-  Top = 354
+  Top = 72
   Width = 1045
   Caption = 'Graph builder'
   ClientHeight = 600

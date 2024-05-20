@@ -114,6 +114,7 @@ type
       V: TVECT; N: integer);
     procedure dijkstra(matrix: TMatrix; n, start: integer; var path: TPath);
     procedure Path_short(matrix: TMatrix; N, start: integer; var Len_Path: Tpath);
+    function GetEdgeLen(node1,node2 : Integer) : Real;
     procedure DrawShortestPath;
   end;
 
@@ -461,7 +462,9 @@ begin
     end;
     //шукаємо № ребра
     newedge := FindEdgeByNodes(startnode, endnode);
-
+      Memo1.Lines.Add('Довжина ребра: '+IntToStr(Round(GetEdgeLen(startnode,endnode))));
+      Memo1.CaretPos := Point(0, Memo1.Lines.Count - 1);
+      Exit;
     case deletemode of
       False: begin
         if (newedge = -1) then
@@ -1066,6 +1069,12 @@ begin
         end;
       end;
   end;
+end;
+
+function TfrmMain.GetEdgeLen(node1, node2: Integer): Real;
+//функція повертає довжину ребра між двома вершинами
+begin
+ Result:=sqrt(sqr(mas_x[node2]-mas_x[node1])+sqr(mas_y[node2]-mas_y[node1]));
 end;
 
 procedure TfrmMain.DrawShortestPath;
