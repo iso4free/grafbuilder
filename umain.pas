@@ -34,10 +34,10 @@ type
   { TfrmMain }
 
   TfrmMain = class(TForm)
+    bbDejkstra: TSpeedButton;
     bbNewGraf: TBitBtn;
     bbWidth: TBitBtn;
     bbDepth: TBitBtn;
-    bbDejkstra: TBitBtn;
     Image1: TImage;
     MainMenu1: TMainMenu;
     Memo1: TMemo;
@@ -180,6 +180,8 @@ begin
   searchMode := True;
   startnode := 1;
   endnode := NodesCount;
+  ClearImage;
+  DrawGraph;
   dijkstra(edges, NodesCount, startnode, path);
 end;
 
@@ -419,7 +421,7 @@ begin
     else if (ssLeft in Shift) then deletemode := False;
     //шукаємо координати обраної вершини
     startnode := FindNodeByXY(x, y);
-    endnode := -1;
+    endnode := 0;
   end;
   ClearImage;
   DrawGraph;
@@ -475,12 +477,11 @@ begin
         if newedge <> -1 then RemoveEdge(newedge);
       end;
     end;
-  end;
-  //оновлюємо зображення графа
-  ClearImage;
-  DrawGraph;
-  if searchMode then
-  begin
+    //оновлюємо зображення графа
+    ClearImage;
+    DrawGraph;
+  end else begin
+    //todo: режим пошуку найкоротшого шляху
     Path_short(edges, NodesCount, startnode, path);
     DrawShortestPath;
   end;
@@ -645,7 +646,7 @@ begin
   if NodesCount = 0 then Exit;
   for i := 1 to NodesCount do draw_graph_node(mas_x[i], mas_y[i], mas_n[i]);
   draw_graph_node(mas_x[startnode], mas_y[startnode], startnode, clRed);
-  draw_graph_node(mas_x[endnode], mas_y[endnode], endnode, clRed);
+  if endnode<>0 then draw_graph_node(mas_x[endnode], mas_y[endnode], endnode, clRed);
   if EdgesCount = 0 then Exit;
   for i := 1 to EdgesCount do draw_graph_edge();
   Invalidate;
@@ -1075,7 +1076,7 @@ begin
     Image1.Canvas.TextOut(800, 50,
       'Початкова та кінцева вершини співпадають!');
   end
-  else if path[endnode] = infinity then
+  else if path[endnode] = 0 then
   begin
     Image1.Canvas.TextOut(800, 50, 'Між вершинами немає шляху!');
   end
@@ -1083,9 +1084,10 @@ begin
   begin
     //todo: намалювати лініями товщиною 3 пікселя червоного кольору найкоротший шлях
     Image1.Canvas.Pen.Width := 3;
+    Image1.Canvas.Pen.Color:=clRed;
     Image1.Canvas.Pen.Style := psSolid;
-    Image1.Canvas.MoveTo(mas_x[startnode], mas_y[startnode] + CNODE_RADIUS * 2);
-    Image1.Canvas.LineTo(mas_X[endnode], mas_y[endnode] + CNODE_RADIUS * 2);
+    Image1.Canvas.MoveTo(mas_x[startnode], mas_y[startnode]);
+    Image1.Canvas.LineTo(mas_X[endnode], mas_y[endnode]);
   end;
 end;
 
